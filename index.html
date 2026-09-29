@@ -12,7 +12,7 @@
 :root{
   --bg:#F3F5F6; --surface:#FFFFFF; --fg:#16232B; --muted:#5C6B74; --line:#DCE2E5;
   --accent:#1F6A85; --accent-soft:#D6E8EF;
-  --s-created:#B8741A; --s-spec:#3D7F74; --s-developed:#1F6A85; --s-tested:#6A5AA8; --s-bug:#A3456A; --s-meet:#5E7A2C;
+  --s-created:#B8741A; --s-spec:#7B8A93; --s-retested:#3D7F74; --s-developed:#1F6A85; --s-tested:#6A5AA8; --s-bug:#A3456A; --b-mr:#C0843A; --b-dev:#A3456A; --b-main:#7A2E2E; --s-meet:#5E7A2C;
   --banner:#F4E6D2; --banner-fg:#8A5512;
   --good:#1E7A4F; --good-bg:#DDF1E6; --warn:#9A6A08; --warn-bg:#F7EBC9; --bad:#B3372F; --bad-bg:#F7DEDB; --none-bg:#E6EBED;
   --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
@@ -23,7 +23,7 @@
 @media (prefers-color-scheme:dark){:root{
   --bg:#0E161B; --surface:#152128; --fg:#E4ECEF; --muted:#93A4AD; --line:#26353D;
   --accent:#5FB3D1; --accent-soft:#1B3A47;
-  --s-created:#E0A552; --s-spec:#6CC2B3; --s-developed:#5FB3D1; --s-tested:#A596E6; --s-bug:#E083A8; --s-meet:#A6C46A;
+  --s-created:#E0A552; --s-spec:#93A4AD; --s-retested:#6CC2B3; --s-developed:#5FB3D1; --s-tested:#A596E6; --s-bug:#E083A8; --b-mr:#E6B070; --b-dev:#E083A8; --b-main:#F0908A; --s-meet:#A6C46A;
   --banner:#3D2E19; --banner-fg:#E0A552;
   --good:#5CCB93; --good-bg:#16372A; --warn:#E5B94E; --warn-bg:#3A2F12; --bad:#EE8078; --bad-bg:#3E1D1B; --none-bg:#223038; color-scheme:dark}}
 *{box-sizing:border-box}
@@ -82,7 +82,7 @@ tbody tr.click{cursor:pointer}
 td.wrap-cell{text-align:left;white-space:normal;color:var(--muted);font-size:13px;min-width:160px}
 .mono{font-family:var(--f-mono);font-size:13px}
 .tag{display:inline-block;font-family:var(--f-mono);font-size:11px;padding:1px 7px;border-radius:4px;background:var(--none-bg);color:var(--muted);margin:1px 2px 1px 0;white-space:nowrap}
-.tag.created{color:var(--s-created)} .tag.spec{color:var(--s-spec)} .tag.developed{color:var(--s-developed)} .tag.tested{color:var(--s-tested)}
+.tag.created{color:var(--s-created)} .tag.spec{color:var(--s-spec)} .tag.retested{color:var(--s-retested)} .tag.developed{color:var(--s-developed)} .tag.tested{color:var(--s-tested)}
 .tag.pass{background:var(--good-bg);color:var(--good)} .tag.fail{background:var(--bad-bg);color:var(--bad)}
 .tag.bug{background:var(--bad-bg);color:var(--bad)} .tag.feature{background:var(--accent-soft);color:var(--accent)} .tag.enhancement{background:var(--warn-bg);color:var(--warn)}
 form{display:flex;flex-direction:column;gap:16px}
@@ -149,13 +149,17 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
           <div class="row-actions"><button class="btn small ghost" type="button" id="addActBtn">+ Add issue</button><span class="hint">One row per issue and action. Tested twice? Add two rows.</span></div>
         </fieldset>
 
-        <div class="frow">
-          <label>Bugs found <span class="hint">Any bug you found today</span><input id="fBugs" type="number" min="0" step="1" inputmode="numeric"></label>
-        </div>
+        <fieldset>
+          <legend>Bugs found</legend>
+          <div class="frow" id="bugInputs"></div>
+          <span class="hint" id="bugOld" style="color:var(--warn)" hidden></span>
+          <span class="hint">Where the bug was found. Any bug counts, not only on issues you tested.</span>
+        </fieldset>
 
         <fieldset>
           <legend>Meetings attended</legend>
           <div class="frow" id="meetInputs"></div>
+          <span class="hint" id="meetOld" style="color:var(--warn)" hidden></span>
         </fieldset>
 
         <fieldset>
@@ -216,7 +220,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
 
   <section class="grid2">
     <div class="panel">
-      <div><h2>Bugs found</h2><div class="status">Per month, last 12 months</div></div>
+      <div class="panel-head"><div><h2>Bugs found</h2><div class="status">Per month by where found, last 12 months</div></div><div class="legend" id="bugLegend"></div></div>
       <div id="chartBugs"></div>
     </div>
     <div class="panel">
@@ -233,7 +237,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2 id="issuesTitle">Issues this month</h2><span class="status">Review rounds = times tested</span></div>
+    <div class="panel-head"><h2 id="issuesTitle">Issues this month</h2><span class="status">Review rounds = times tested + re-tested</span></div>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Issue</th><th class="l">Type</th><th class="l">Module</th><th class="l">Stages this month</th><th>Rounds</th><th class="l">Last result</th><th class="l">Last worked</th></tr></thead>
@@ -247,7 +251,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       <h2>Month log</h2>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Month</th><th>Created</th><th>Specs</th><th>Dev.</th><th>Tested</th><th>Pass</th><th>Bugs</th><th>Meet.</th></tr></thead>
+          <thead><tr><th>Month</th><th>Created</th><th>Dev.</th><th>Tested</th><th>Re-test</th><th>Pass</th><th>Bugs</th><th>Meet.</th></tr></thead>
           <tbody id="monthBody"></tbody>
         </table>
       </div>
@@ -275,17 +279,26 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
   const DATA_PATH = "data.json";
   const ACTIONS = [
     {key:"created",   label:"Created",      tile:"Issues created",   color:"var(--s-created)"},
-    {key:"spec",      label:"Spec written", tile:"Specs written",    color:"var(--s-spec)"},
     {key:"developed", label:"Developed",    tile:"Issues developed", color:"var(--s-developed)"},
-    {key:"tested",    label:"Tested",       tile:"Issues tested",    color:"var(--s-tested)"}
+    {key:"tested",    label:"Tested",       tile:"Issues tested",    color:"var(--s-tested)"},
+    {key:"retested",  label:"Re-Tested",    tile:"Issues re-tested", color:"var(--s-retested)"}
   ];
+  // Actions saved by earlier versions: still shown in logs, not offered for new rows
+  const OLD_ACTIONS = [{key:"spec", label:"Spec written", color:"var(--s-spec)"}];
+  const ALL_ACTIONS = ACTIONS.concat(OLD_ACTIONS);
+  const actLabel = k => (ALL_ACTIONS.find(x=>x.key===k)||{label:k}).label;
+  const isTest = k => k==="tested" || k==="retested";
   const TYPES = [{key:"bug",label:"Bug"},{key:"feature",label:"Feature"},{key:"enhancement",label:"Enhancement"}];
-  const MEETINGS = [{key:"standup",label:"Stand-up"},{key:"internal",label:"Internal"},{key:"client",label:"Client"},{key:"other",label:"Other"}];
+  const BUGS = [{key:"mr",label:"MR",color:"var(--b-mr)"},{key:"dev",label:"Dev",color:"var(--b-dev)"},{key:"main",label:"Main",color:"var(--b-main)"}];
+  const bugTotal = b => BUGS.reduce((s,x)=>s+(b[x.key]||0),0) + (b.unsplit||0);
+  const bugText = b => { const parts = BUGS.filter(x=>b[x.key]).map(x=>`${b[x.key]} ${x.label}`); if(b.unsplit) parts.push(`${b.unsplit} not split`); return parts.join(" · "); };
+  const MEETINGS = [{key:"support",label:"Support"},{key:"internal",label:"Internal"},{key:"integration",label:"Integration"},{key:"client",label:"Client"}];
+  const meetTotal = mt => MEETINGS.reduce((s,m)=>s+(mt[m.key]||0),0) + (mt.earlier||0);
   const TARGETS = [
-    {key:"created",label:"Created"},{key:"spec",label:"Specs"},{key:"developed",label:"Developed"},
-    {key:"tested",label:"Tested"},{key:"meetings",label:"Meetings"},{key:"passRate",label:"Pass rate %"}
+    {key:"created",label:"Created"},{key:"developed",label:"Developed"},
+    {key:"tested",label:"Tested"},{key:"retested",label:"Re-Tested"},{key:"meetings",label:"Meetings"},{key:"passRate",label:"Pass rate %"}
   ];
-  const DEFAULT_TARGETS = {created:0,spec:0,developed:0,tested:0,meetings:0,passRate:0};
+  const DEFAULT_TARGETS = {created:0,developed:0,tested:0,retested:0,meetings:0,passRate:0};
   const $ = id => document.getElementById(id);
   const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const WEEKDAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -318,14 +331,22 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       const acts = (Array.isArray(d.activities) ? d.activities : []).map(a=>({
         issue: cleanIssue(a.issue),
         type: TYPES.some(t=>t.key===a.type) ? a.type : "bug",
-        action: ACTIONS.some(x=>x.key===a.action) ? a.action : "developed",
-        result: a.action==="tested" && (a.result==="passed" || a.result==="failed") ? a.result : null,
+        action: ALL_ACTIONS.some(x=>x.key===a.action) ? a.action : "developed",
+        result: isTest(a.action) && (a.result==="passed" || a.result==="failed") ? a.result : null,
         module: a.module ? String(a.module).trim() : ""
       })).filter(a=>a.issue);
       const meetings = {}; MEETINGS.forEach(m=>meetings[m.key]=0);
-      if(d.meetings && typeof d.meetings === "object") MEETINGS.forEach(m=>meetings[m.key] = +d.meetings[m.key]||0);
-      else if(d.meetings!=null || d.attended!=null) meetings.other = +(d.meetings!=null ? d.meetings : d.attended)||0;
-      const out = { date:d.date, activities:acts, bugs:+d.bugs||0, meetings,
+      if(d.meetings && typeof d.meetings === "object"){
+        MEETINGS.forEach(m=>meetings[m.key] = +d.meetings[m.key]||0);
+        // Types from earlier versions (Stand-up, Other) have no match in the new list; keep their count
+        const earlier = (+d.meetings.earlier||0) + (+d.meetings.standup||0) + (+d.meetings.other||0);
+        if(earlier) meetings.earlier = earlier;
+      }
+      else if(+(d.meetings!=null ? d.meetings : d.attended)) meetings.earlier = +(d.meetings!=null ? d.meetings : d.attended);
+      const bugs = {mr:0,dev:0,main:0};
+      if(d.bugs && typeof d.bugs === "object"){ BUGS.forEach(x=>bugs[x.key] = +d.bugs[x.key]||0); if(+d.bugs.unsplit) bugs.unsplit = +d.bugs.unsplit; }
+      else if(+d.bugs) bugs.unsplit = +d.bugs; // saved before bugs were split by location
+      const out = { date:d.date, activities:acts, bugs, meetings,
         integrations: Array.isArray(d.integrations) ? d.integrations.map(String).filter(Boolean) : [],
         notes: d.notes ? String(d.notes) : "" };
       // Days saved by the earlier version kept plain counts; keep them so old months still add up.
@@ -351,21 +372,21 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
 
   function monthsAgg(){
     const map = new Map(), info = issueInfo();
-    const blank = k => ({month:k, days:0, sets:{created:new Set(),spec:new Set(),developed:new Set(),tested:new Set()}, legacy:{created:0,developed:0,tested:0},
-      passed:0, failed:0, testRuns:0, bugs:0, meetings:{standup:0,internal:0,client:0,other:0}, ints:new Map(), issues:new Map()});
+    const blank = k => ({month:k, days:0, sets:{created:new Set(),developed:new Set(),tested:new Set(),retested:new Set(),spec:new Set()}, legacy:{created:0,developed:0,tested:0},
+      passed:0, failed:0, testRuns:0, bugs:0, bugsBy:{mr:0,dev:0,main:0,unsplit:0}, meetings:{support:0,internal:0,integration:0,client:0,earlier:0}, ints:new Map(), issues:new Map()});
     doc.days.forEach(d=>{
       const k = d.date.slice(0,7);
       if(!map.has(k)) map.set(k, blank(k));
       const m = map.get(k); m.days++;
-      m.bugs += d.bugs;
-      MEETINGS.forEach(t=>m.meetings[t.key] += d.meetings[t.key]);
+      m.bugs += bugTotal(d.bugs); BUGS.forEach(x=>m.bugsBy[x.key] += d.bugs[x.key]); m.bugsBy.unsplit += d.bugs.unsplit||0;
+      MEETINGS.forEach(t=>m.meetings[t.key] += d.meetings[t.key]); m.meetings.earlier += d.meetings.earlier||0;
       d.integrations.forEach(i=>m.ints.set(i,(m.ints.get(i)||0)+1));
       if(d.legacy) Object.keys(m.legacy).forEach(x=>m.legacy[x] += d.legacy[x]);
       d.activities.forEach(a=>{
         m.sets[a.action].add(a.issue);
         const is = m.issues.get(a.issue) || {issue:a.issue, stages:new Set(), rounds:0, fails:0, lastResult:null, last:d.date};
         is.stages.add(a.action); is.last = d.date;
-        if(a.action==="tested"){ m.testRuns++; is.rounds++; if(a.result==="passed"){ m.passed++; is.lastResult="passed"; } else if(a.result==="failed"){ m.failed++; is.fails++; is.lastResult="failed"; } }
+        if(isTest(a.action)){ m.testRuns++; is.rounds++; if(a.result==="passed"){ m.passed++; is.lastResult="passed"; } else if(a.result==="failed"){ m.failed++; is.fails++; is.lastResult="failed"; } }
         m.issues.set(a.issue, is);
       });
     });
@@ -373,12 +394,13 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       const c = k => m.sets[k].size + (m.legacy[k]||0);
       const types = {bug:0,feature:0,enhancement:0}, modules = new Map();
       m.issues.forEach((is,id)=>{ const inf = info.get(id)||{}; is.type = inf.type||"bug"; is.module = inf.module||""; types[is.type]++; if(is.module) modules.set(is.module,(modules.get(is.module)||0)+1); });
-      const testedIssues = m.sets.tested.size;
+      const testedIssues = new Set([...m.sets.tested, ...m.sets.retested]).size;
       return Object.assign(m, {
-        created:c("created"), spec:c("spec"), developed:c("developed"), tested:c("tested"),
+        created:c("created"), developed:c("developed"), tested:c("tested"), retested:c("retested"),
         passRate: (m.passed+m.failed) ? m.passed/(m.passed+m.failed)*100 : null,
         avgRounds: testedIssues ? m.testRuns/testedIssues : null,
-        meetTotal: MEETINGS.reduce((s,t)=>s+m.meetings[t.key],0),
+        meetTotal: meetTotal(m.meetings),
+        bug_mr:m.bugsBy.mr, bug_dev:m.bugsBy.dev, bug_main:m.bugsBy.main,
         types, modules
       });
     });
@@ -452,14 +474,14 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     const tg = k => t[k] ? `Target ${t[k]}${k==="passRate"?"%":""}` : "";
     const tiles = ACTIONS.map(a=>{
       const foot = [tg(a.key)].filter(Boolean);
-      if(a.key==="tested") foot.push(`${r.testRuns} test round${r.testRuns===1?"":"s"}${r.avgRounds!=null?` · avg ${fmt(r.avgRounds)} per issue`:""}`);
+      if(a.key==="retested") foot.push(`${r.testRuns} test round${r.testRuns===1?"":"s"}${r.avgRounds!=null?` · avg ${fmt(r.avgRounds)} per issue`:""}`);
       return tile({label:a.tile, color:a.color, big:r[a.key], value:r[a.key], target:t[a.key], state:targetState(r[a.key], t[a.key], r.month), foot, delta:deltaTxt(r[a.key], p&&p[a.key])});
     });
     tiles.push(tile({label:"Test pass rate", color:"var(--good)", big: r.passRate==null ? "—" : `${fmt(r.passRate)}<small>%</small>`, value:r.passRate, target:t.passRate,
       state: r.passRate==null ? null : targetState(r.passRate, t.passRate, r.month), foot:[`${r.passed} passed · ${r.failed} failed`, tg("passRate")].filter(Boolean), delta:deltaTxt(r.passRate, p&&p.passRate, " pts")}));
-    tiles.push(tile({label:"Bugs found", color:"var(--s-bug)", big:r.bugs, foot:[`${r.days} day${r.days===1?"":"s"} logged`], delta:deltaTxt(r.bugs, p&&p.bugs)}));
+    tiles.push(tile({label:"Bugs found", color:"var(--s-bug)", big:r.bugs, foot:[bugText(r.bugsBy) || "None logged"], delta:deltaTxt(r.bugs, p&&p.bugs)}));
     tiles.push(tile({label:"Meetings attended", color:"var(--s-meet)", big:r.meetTotal, value:r.meetTotal, target:t.meetings, state:targetState(r.meetTotal, t.meetings, r.month),
-      foot:[MEETINGS.filter(m=>r.meetings[m.key]).map(m=>`${r.meetings[m.key]} ${m.label.toLowerCase()}`).join(" · ") || "None logged", tg("meetings")].filter(Boolean), delta:deltaTxt(r.meetTotal, p&&p.meetTotal)}));
+      foot:[MEETINGS.filter(m=>r.meetings[m.key]).map(m=>`${r.meetings[m.key]} ${m.label.toLowerCase()}`).concat(r.meetings.earlier?[`${r.meetings.earlier} earlier types`]:[]).join(" · ") || "None logged", tg("meetings")].filter(Boolean), delta:deltaTxt(r.meetTotal, p&&p.meetTotal)}));
     const ints = [...r.ints.keys()], mods = [...r.modules.keys()];
     tiles.push(tile({label:"Integrations & modules", big:`${ints.length}<small> int. · ${mods.length} mod.</small>`,
       foot:[ints.length ? esc(ints.join(" · ")) : "No integrations logged"], delta:deltaTxt(ints.length, p&&p.ints.size)}));
@@ -497,7 +519,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     hbars($("bdTypes"), TYPES.map(t=>[t.label, r.types[t.key], TYPECOL[t.key]]).filter(x=>x[1]), "", "No issues logged.");
     hbars($("bdModules"), [...r.modules.entries()].sort((a,b)=>b[1]-a[1]), "", "No modules logged.");
     hbars($("bdInts"), [...r.ints.entries()].sort((a,b)=>b[1]-a[1]), "", "No integrations logged.");
-    hbars($("bdMeet"), MEETINGS.map(m=>[m.label, r.meetings[m.key], "var(--s-meet)"]).filter(x=>x[1]), "", "No meetings logged.");
+    hbars($("bdMeet"), MEETINGS.map(m=>[m.label, r.meetings[m.key], "var(--s-meet)"]).concat([["Earlier types", r.meetings.earlier, "var(--muted)"]]).filter(x=>x[1]), "", "No meetings logged.");
   }
 
   // ---------- render: tables ----------
@@ -509,14 +531,14 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     const rows = r ? [...r.issues.values()].sort((a,b)=>b.last.localeCompare(a.last) || a.issue.localeCompare(b.issue, undefined, {numeric:true})) : [];
     $("issueBody").innerHTML = rows.length ? rows.map(is=>`<tr>
       <td class="mono">#${esc(is.issue)}</td><td class="l">${typeTag(is.type)}</td><td class="l mono">${esc(is.module)||"—"}</td>
-      <td class="l">${ACTIONS.filter(a=>is.stages.has(a.key)).map(a=>`<span class="tag ${a.key}">${a.label}</span>`).join("")}</td>
+      <td class="l">${ALL_ACTIONS.filter(a=>is.stages.has(a.key)).map(a=>`<span class="tag ${a.key}">${a.label}</span>`).join("")}</td>
       <td>${is.rounds || "—"}</td><td class="l">${resTag(is.lastResult)}</td><td class="l">${dLong(is.last)}</td></tr>`).join("")
       : `<tr><td colspan="7" class="empty">No issues logged for this month.</td></tr>`;
   }
   function renderMonthTable(list){
     const rev = list.slice().reverse();
     $("monthBody").innerHTML = rev.length ? rev.map(r=>`<tr class="click${r.month===selected?" sel":""}" data-m="${r.month}" tabindex="0">
-      <td>${mLabel(r.month)}</td><td>${r.created}</td><td>${r.spec}</td><td>${r.developed}</td><td>${r.tested}</td><td>${r.passRate==null?"—":fmt(r.passRate)+"%"}</td><td>${r.bugs}</td><td>${r.meetTotal}</td></tr>`).join("")
+      <td>${mLabel(r.month)}</td><td>${r.created}</td><td>${r.developed}</td><td>${r.tested}</td><td>${r.retested}</td><td>${r.passRate==null?"—":fmt(r.passRate)+"%"}</td><td>${r.bugs}</td><td>${r.meetTotal}</td></tr>`).join("")
       : `<tr><td colspan="8" class="empty">No months yet.</td></tr>`;
   }
   function renderDayTable(){
@@ -524,12 +546,12 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     $("dayTitle").textContent = selected ? "Daily log · " + mLabel(selected) : "Daily log";
     $("dayHint").textContent = auth && days.length ? "Click a day to edit it" : "";
     $("dayBody").innerHTML = days.length ? days.map(d=>{
-      const acts = d.activities.map(a=>`<span class="tag ${a.action}">#${esc(a.issue)} ${ACTIONS.find(x=>x.key===a.action).label.toLowerCase()}${a.result?` · ${a.result}`:""}</span>`).join("")
+      const acts = d.activities.map(a=>`<span class="tag ${a.action}">#${esc(a.issue)} ${actLabel(a.action).toLowerCase()}${a.result?` · ${a.result}`:""}</span>`).join("")
         + (d.legacy ? `<span class="tag">${d.legacy.created}c / ${d.legacy.developed}d / ${d.legacy.tested}t</span>` : "");
-      const meet = MEETINGS.reduce((s,m)=>s+d.meetings[m.key],0);
+      const meet = meetTotal(d.meetings);
       const extra = [d.integrations.join(", "), d.notes].filter(Boolean).map(esc).join(" · ");
       return `<tr class="${auth?"click":""}${d.date===editingDay?" sel":""}" data-d="${d.date}" ${auth?'tabindex="0"':""}>
-        <td>${dLabel(d.date)}</td><td class="wrap-cell">${acts || "—"}</td><td>${d.bugs}</td><td>${meet}</td><td class="wrap-cell">${extra || "—"}</td></tr>`;
+        <td>${dLabel(d.date)}</td><td class="wrap-cell">${acts || "—"}</td><td title="${esc(bugText(d.bugs))}">${bugTotal(d.bugs)}${bugTotal(d.bugs)?`<div class="hint">${esc(bugText(d.bugs))}</div>`:""}</td><td>${meet}</td><td class="wrap-cell">${extra || "—"}</td></tr>`;
     }).join("") : `<tr><td colspan="5" class="empty">No days logged for this month.</td></tr>`;
   }
 
@@ -537,14 +559,16 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     const list = monthsAgg(), last12 = list.slice(-12);
     renderSelect(list); renderTiles(list);
     barChart($("chartPipe"), last12, ACTIONS, "Issues per stage per month");
-    barChart($("chartBugs"), last12, [{key:"bugs",label:"Bugs found",color:"var(--s-bug)"}], "Bugs found per month");
+    barChart($("chartBugs"), last12, BUGS.map(x=>({key:"bug_"+x.key, label:x.label, color:x.color})), "Bugs found per month by where found");
     barChart($("chartMeet"), last12, [{key:"meetTotal",label:"Meetings",color:"var(--s-meet)"}], "Meetings attended per month");
     renderBreakdowns(list); renderIssues(list); renderMonthTable(list); renderDayTable();
     $("updated").textContent = doc.updatedAt ? "Last updated " + new Date(doc.updatedAt).toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"}) : "No updates yet";
   }
+  $("bugLegend").innerHTML = BUGS.map(x=>`<span><i class="sw" style="background:${x.color}"></i>${x.label}</span>`).join("");
   $("pipeLegend").innerHTML = ACTIONS.map(a=>`<span><i class="sw" style="background:${a.color}"></i>${a.label}</span>`).join("");
 
   // ---------- owner form ----------
+  $("bugInputs").innerHTML = BUGS.map(x=>`<label>${x.label}<input id="fBug_${x.key}" type="number" min="0" step="1" inputmode="numeric"></label>`).join("");
   $("meetInputs").innerHTML = MEETINGS.map(m=>`<label>${m.label}<input id="fMeet_${m.key}" type="number" min="0" step="1" inputmode="numeric"></label>`).join("");
   $("targetInputs").innerHTML = TARGETS.map(t=>`<label class="hint">${t.label}<input id="tg_${t.key}" type="number" min="0"${t.key==="passRate"?' max="100"':""}></label>`).join("");
 
@@ -558,8 +582,8 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     div.innerHTML = `
       <input class="a-issue" type="text" inputmode="numeric" placeholder="#2765" aria-label="Issue number" value="${esc(a.issue ? "#"+a.issue : "")}">
       <select class="a-type" aria-label="Issue type">${opts(TYPES, a.type)}</select>
-      <select class="a-action" aria-label="What you did">${opts(ACTIONS, a.action)}</select>
-      <select class="a-result" aria-label="Test result"${a.action==="tested"?"":" disabled"}><option value="">${a.action==="tested"?"Result…":"—"}</option><option value="passed"${a.result==="passed"?" selected":""}>Passed</option><option value="failed"${a.result==="failed"?" selected":""}>Failed</option></select>
+      <select class="a-action" aria-label="What you did">${opts(ACTIONS.concat(OLD_ACTIONS.filter(o=>o.key===a.action).map(o=>({key:o.key,label:o.label+" (old)"}))), a.action)}</select>
+      <select class="a-result" aria-label="Test result"${isTest(a.action)?"":" disabled"}><option value="">${isTest(a.action)?"Result…":"—"}</option><option value="passed"${a.result==="passed"?" selected":""}>Passed</option><option value="failed"${a.result==="failed"?" selected":""}>Failed</option></select>
       <input class="a-module" type="text" list="moduleList" placeholder="dawa_salla" aria-label="Module" value="${esc(a.module)}">
       <button type="button" class="icon-btn a-del" aria-label="Remove this issue row" title="Remove">×</button>`;
     return div;
@@ -570,7 +594,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
   $("actRows").addEventListener("change", e=>{
     const row = e.target.closest(".act-row"); if(!row) return;
     if(e.target.classList.contains("a-action")){
-      const res = row.querySelector(".a-result"), on = e.target.value==="tested";
+      const res = row.querySelector(".a-result"), on = isTest(e.target.value);
       res.disabled = !on; res.options[0].textContent = on ? "Result…" : "—"; if(!on) res.value = "";
     }
     if(e.target.classList.contains("a-issue")){
@@ -592,8 +616,12 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     $("fDate").value = date;
     $("actRows").innerHTML = "";
     (d && d.activities.length ? d.activities : [null]).forEach(a=>addActRow(a));
-    $("fBugs").value = d && d.bugs ? d.bugs : "";
+    BUGS.forEach(x=>$("fBug_"+x.key).value = d && d.bugs[x.key] ? d.bugs[x.key] : "");
+    $("bugOld").hidden = !(d && d.bugs.unsplit);
+    if(d && d.bugs.unsplit) $("bugOld").textContent = `This day has ${d.bugs.unsplit} bug${d.bugs.unsplit===1?"":"s"} saved before the split. Enter them under MR, Dev or Main to replace that number.`;
     MEETINGS.forEach(m=>$("fMeet_"+m.key).value = d && d.meetings[m.key] ? d.meetings[m.key] : "");
+    $("meetOld").hidden = !(d && d.meetings.earlier);
+    if(d && d.meetings.earlier) $("meetOld").textContent = `This day also has ${d.meetings.earlier} meeting${d.meetings.earlier===1?"":"s"} saved under the old types (Stand-up, Other). Add them to the types above to replace that number.`;
     formInts = new Set(d ? d.integrations : []);
     $("fNotes").value = d ? d.notes : "";
     $("fNewInt").value = "";
@@ -657,16 +685,20 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       const issue = cleanIssue(row.querySelector(".a-issue").value), module = row.querySelector(".a-module").value.trim();
       const action = row.querySelector(".a-action").value, result = row.querySelector(".a-result").value || null;
       if(!issue){ if(module) return err.textContent = "Each issue row needs an issue number."; continue; }
-      if(action==="tested" && !result) return err.textContent = `Pick Passed or Failed for the test on #${issue}.`;
-      activities.push({issue, type:row.querySelector(".a-type").value, action, result: action==="tested" ? result : null, module});
+      if(isTest(action) && !result) return err.textContent = `Pick Passed or Failed for the test on #${issue}.`;
+      activities.push({issue, type:row.querySelector(".a-type").value, action, result: isTest(action) ? result : null, module});
     }
-    const bugs = readCount($("fBugs")), meetings = {};
-    if(isNaN(bugs)) return err.textContent = "Bugs found must be a whole number of 0 or more.";
+    const bugs = {}, meetings = {};
+    for(const x of BUGS){ const v = readCount($("fBug_"+x.key)); if(isNaN(v)) return err.textContent = "Bug counts must be whole numbers of 0 or more."; bugs[x.key] = v; }
     for(const m of MEETINGS){ const v = readCount($("fMeet_"+m.key)); if(isNaN(v)) return err.textContent = "Meeting counts must be whole numbers of 0 or more."; meetings[m.key] = v; }
     const r = { date, activities, bugs, meetings, integrations: sortAlpha([...formInts]), notes: $("fNotes").value.trim() };
     const old = doc.days.find(x=>x.date===date);
     if(old && old.legacy) r.legacy = old.legacy;
-    if(!activities.length && !bugs && !Object.values(meetings).some(Boolean) && !r.integrations.length && !r.notes && !r.legacy) return err.textContent = "Add at least one issue, bug, meeting, integration or note.";
+    // Meetings under old types: keep them unless more meetings were entered under the new types
+    if(old && old.meetings.earlier && meetTotal(meetings) <= meetTotal(old.meetings) - old.meetings.earlier) meetings.earlier = old.meetings.earlier;
+    // Bugs saved before the MR/Dev/Main split: keep them unless a split count is entered for this day
+    if(old && old.bugs.unsplit && !bugTotal(bugs)) bugs.unsplit = old.bugs.unsplit;
+    if(!activities.length && !bugTotal(bugs) && !Object.values(meetings).some(Boolean) && !r.integrations.length && !r.notes && !r.legacy) return err.textContent = "Add at least one issue, bug, meeting, integration or note.";
     err.textContent = "";
     const btn = $("saveBtn"); btn.disabled = true; btn.textContent = "Saving…";
     try{
@@ -708,8 +740,8 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     downloadCsv("kpi-issues.csv", rows);
   });
   $("exportDays").addEventListener("click", ()=>{
-    const rows = [["date","issues_logged","bugs_found",...MEETINGS.map(m=>"meetings_"+m.key),"integrations","notes"]];
-    doc.days.forEach(d=>rows.push([d.date, d.activities.length, d.bugs, ...MEETINGS.map(m=>d.meetings[m.key]), d.integrations.join("; "), d.notes]));
+    const rows = [["date","issues_logged",...BUGS.map(x=>"bugs_"+x.key),...MEETINGS.map(m=>"meetings_"+m.key),"integrations","notes"]];
+    doc.days.forEach(d=>rows.push([d.date, d.activities.length, ...BUGS.map(x=>d.bugs[x.key]), ...MEETINGS.map(m=>d.meetings[m.key]), d.integrations.join("; "), d.notes]));
     downloadCsv("kpi-days.csv", rows);
   });
 
