@@ -8,11 +8,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: header → 3 KPI tiles for the selected month → two monthly trend charts → month log + daily log → owner panel (daily entry) */
+/* Layout: header → owner entry (signed in only) → 5 KPI tiles for the month → issues trend (full width) → meetings trend + integrations breakdown → month log + daily log */
 :root{
   --bg:#F3F5F6; --surface:#FFFFFF; --fg:#16232B; --muted:#5C6B74; --line:#DCE2E5;
-  --accent:#1F6A85; --accent-soft:#D6E8EF; --amber:#B8741A; --amber-soft:#F4E6D2;
-  --good:#1E7A4F; --good-bg:#DDF1E6; --warn:#9A6A08; --warn-bg:#F7EBC9; --bad:#B3372F; --bad-bg:#F7DEDB;
+  --accent:#1F6A85; --accent-soft:#D6E8EF;
+  --s-created:#B8741A; --s-developed:#1F6A85; --s-tested:#6A5AA8; --s-meet:#3D7F74;
+  --banner:#F4E6D2; --banner-fg:#8A5512;
+  --good:#1E7A4F; --good-bg:#DDF1E6; --warn:#9A6A08; --warn-bg:#F7EBC9; --bad:#B3372F; --bad-bg:#F7DEDB; --none-bg:#E6EBED;
   --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -20,12 +22,15 @@
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#0E161B; --surface:#152128; --fg:#E4ECEF; --muted:#93A4AD; --line:#26353D;
-  --accent:#5FB3D1; --accent-soft:#1B3A47; --amber:#E0A552; --amber-soft:#3D2E19;
-  --good:#5CCB93; --good-bg:#16372A; --warn:#E5B94E; --warn-bg:#3A2F12; --bad:#EE8078; --bad-bg:#3E1D1B; color-scheme:dark}}
+  --accent:#5FB3D1; --accent-soft:#1B3A47;
+  --s-created:#E0A552; --s-developed:#5FB3D1; --s-tested:#A596E6; --s-meet:#6CC2B3;
+  --banner:#3D2E19; --banner-fg:#E0A552;
+  --good:#5CCB93; --good-bg:#16372A; --warn:#E5B94E; --warn-bg:#3A2F12; --bad:#EE8078; --bad-bg:#3E1D1B; --none-bg:#223038; color-scheme:dark}}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.wrap{max-width:1120px;margin:0 auto;padding:28px 20px 56px;display:flex;flex-direction:column;gap:24px}
+.wrap{max-width:1160px;margin:0 auto;padding:28px 20px 56px;display:flex;flex-direction:column;gap:24px}
 header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
 .eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,4vw,40px);line-height:1.1;margin:4px 0 0;text-wrap:balance}
@@ -40,28 +45,26 @@ select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-vis
 .btn.small{padding:4px 10px;font-size:13px;font-weight:500}
 .btn.danger{border-color:var(--bad);color:var(--bad);background:transparent}
 .btn.danger.armed{background:var(--bad);color:var(--surface)}
-.banner{background:var(--amber-soft);color:var(--fg);border-radius:8px;padding:10px 14px;font-size:14px}
-.banner b{color:var(--amber)}
-.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
-.tile-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.tile-label{font-size:13px;font-weight:600;color:var(--muted)}
-.pill{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:2px 8px;border-radius:99px;white-space:nowrap}
-.pill.good{background:var(--good-bg);color:var(--good)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)} .pill.none{background:var(--line);color:var(--muted)}
-.big{font-family:var(--f-display);font-weight:700;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
-.big small{font-size:20px;color:var(--muted);font-weight:600}
-.meter{height:6px;background:var(--line);border-radius:3px;position:relative}
-.meter i{position:absolute;inset:0 auto 0 0;border-radius:3px;background:var(--accent)}
-.meter b{position:absolute;top:-4px;width:2px;height:14px;background:var(--fg);opacity:.55}
-.tile-foot{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.banner{background:var(--banner);color:var(--fg);border-radius:8px;padding:10px 14px;font-size:14px}
+.banner b{color:var(--banner-fg)}
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.tile-top{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0}
+.tile-label{font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px}
+.pill{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:99px;white-space:nowrap}
+.pill.good{background:var(--good-bg);color:var(--good)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)} .pill.none{background:var(--none-bg);color:var(--muted)}
+.big{font-family:var(--f-display);font-weight:700;font-size:42px;line-height:1;font-variant-numeric:tabular-nums}
+.meter{height:6px;background:var(--line);border-radius:3px;position:relative;overflow:hidden}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:3px}
+.tile-foot{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .delta.up{color:var(--good)} .delta.down{color:var(--bad)}
+.chips-inline{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
-.sw{width:10px;height:10px;border-radius:2px;display:inline-block}
-.sw.line{height:3px;width:14px}
+.sw{width:10px;height:10px;border-radius:2px;display:inline-block;flex:none}
 svg{width:100%;height:auto;display:block}
 svg text{font-family:var(--f-mono);font-size:12px;fill:var(--muted)}
 .table-wrap{overflow-x:auto}
@@ -71,26 +74,39 @@ th:first-child,td:first-child{text-align:left}
 th{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 tr.sel td{background:var(--accent-soft)}
 tbody tr.click{cursor:pointer}
-td.note{text-align:left;white-space:normal;color:var(--muted);font-size:13px;min-width:140px}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:6px;vertical-align:middle}
-.dot.good{background:var(--good)} .dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)} .dot.none{background:transparent}
-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+td.wrap-cell{text-align:left;white-space:normal;color:var(--muted);font-size:13px;min-width:150px}
+form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;color:var(--muted)}
 label input,label textarea{width:100%}
 form .full{grid-column:1/-1}
+form .half{grid-column:span 2}
 .hint{font-size:12px;color:var(--muted);font-weight:400}
 .err{color:var(--bad);font-size:13px;min-height:1em}
 .ok{color:var(--good);font-size:13px}
 .row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .empty{padding:28px 8px;text-align:center;color:var(--muted)}
+fieldset{border:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+legend{font-size:13px;font-weight:500;color:var(--muted);padding:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:99px;padding:4px 12px;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.add-row{display:flex;gap:8px}
+.add-row input{flex:1}
 details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)}
-.targets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.targets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
 .status{font-size:13px;color:var(--muted)}
+.hbar{display:grid;grid-template-columns:minmax(90px,max-content) 1fr auto;gap:8px 12px;align-items:center;font-size:14px}
+.hbar .track{height:12px;background:var(--line);border-radius:3px;overflow:hidden}
+.hbar .track i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.hbar .n{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.hbar .name{overflow-wrap:anywhere}
 footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 footer button{background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-size:12px}
-@media (max-width:860px){.tiles,.grid2{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:420px){form,.targets{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:no-preference){.meter i{transition:width .4s ease}}
+@media (max-width:1000px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:620px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))} form,.targets{grid-template-columns:repeat(2,minmax(0,1fr))} form .half{grid-column:1/-1}}
+@media (max-width:380px){.tiles{grid-template-columns:minmax(0,1fr)}}
+@media (prefers-reduced-motion:no-preference){.meter i,.hbar .track i{transition:width .4s ease}}
 </style>
 </head>
 <body>
@@ -101,25 +117,30 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       <h1>Hassan's Monthly KPIs</h1>
     </div>
     <div class="controls">
-      <label for="monthSel" class="eyebrow" style="flex-direction:row">Month</label>
+      <span class="eyebrow">Month</span>
       <select id="monthSel" aria-label="Select month"></select>
     </div>
   </header>
 
   <div id="banner" class="banner" hidden></div>
 
-  <!-- Owner panel: hidden from visitors until they open it from the footer -->
+  <!-- Owner panel: hidden from visitors until opened from the footer -->
   <section class="grid2" id="ownerArea" hidden>
     <div class="panel" id="entryPanel" hidden>
       <div class="panel-head"><h2 id="formTitle">Log a day</h2><button class="btn small ghost" type="button" id="todayBtn">Today</button></div>
       <form id="form" novalidate>
-        <label class="full">Date<input id="fDate" type="date" required></label>
-        <label>Tasks planned<input id="fPlanned" type="number" min="0" step="1" inputmode="numeric" required></label>
-        <label>Tasks completed<input id="fCompleted" type="number" min="0" step="1" inputmode="numeric" required></label>
-        <label class="full">Completed on time <span class="hint">Delivered by the agreed deadline</span><input id="fOnTime" type="number" min="0" step="1" inputmode="numeric" required></label>
-        <label>Meetings invited<input id="fInvited" type="number" min="0" step="1" inputmode="numeric" required></label>
-        <label>Meetings attended<input id="fAttended" type="number" min="0" step="1" inputmode="numeric" required></label>
-        <label class="full">Note <span class="hint">Optional, e.g. issues worked on</span><textarea id="fNotes" rows="2"></textarea></label>
+        <label class="half">Date<input id="fDate" type="date" required></label>
+        <label class="half">Meetings attended<input id="fMeetings" type="number" min="0" step="1" inputmode="numeric"></label>
+        <label class="half">Issues created<input id="fCreated" type="number" min="0" step="1" inputmode="numeric"></label>
+        <label class="half">Issues developed<input id="fDeveloped" type="number" min="0" step="1" inputmode="numeric"></label>
+        <label class="half">Issues tested<input id="fTested" type="number" min="0" step="1" inputmode="numeric"></label>
+        <span class="half hint" style="align-self:end;padding-bottom:10px">Leave a count empty for 0.</span>
+        <fieldset class="full">
+          <legend>Integrations worked on</legend>
+          <div class="chips" id="intChips"></div>
+          <div class="add-row"><input id="fNewInt" type="text" placeholder="Add an integration, e.g. HungerStation" aria-label="New integration name"><button class="btn small ghost" type="button" id="addIntBtn">Add</button></div>
+        </fieldset>
+        <label class="full">Note <span class="hint">Optional, e.g. issue numbers</span><textarea id="fNotes" rows="2"></textarea></label>
         <div class="err full" id="fErr" role="alert"></div>
         <div class="row-actions full">
           <button class="btn" type="submit" id="saveBtn">Save day</button>
@@ -132,10 +153,10 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     <div class="panel">
       <h2>Owner access</h2>
       <div id="signedOut">
-        <p class="status" style="margin:0 0 12px">Paste a GitHub fine-grained token with <b>Contents: Read and write</b> on this repository only. It stays in this browser and is sent only to GitHub.</p>
+        <p class="status" style="margin:0 0 12px">Paste a GitHub token that can write to this repository. It stays in this browser and is sent only to GitHub.</p>
         <div style="display:grid;gap:10px">
-          <label>GitHub token<input id="tToken" type="password" autocomplete="off" placeholder="github_pat_…"></label>
-          <label>Repository <span class="hint">owner/name, filled in automatically on GitHub Pages</span><input id="tRepo" type="text" placeholder="hassan-nasr/kpis"></label>
+          <label>GitHub token<input id="tToken" type="password" autocomplete="off" placeholder="github_pat_… or ghp_…"></label>
+          <label>Repository <span class="hint">owner/name, filled in automatically on GitHub Pages</span><input id="tRepo" type="text" placeholder="your-username/kpis"></label>
           <label>Branch<input id="tBranch" type="text" value="main"></label>
           <div class="err" id="sErr" role="alert"></div>
           <div class="row-actions"><button class="btn" type="button" id="signInBtn">Sign in</button></div>
@@ -144,11 +165,13 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       <div id="signedIn" hidden>
         <p class="status" style="margin:0 0 12px" id="whoami"></p>
         <details>
-          <summary>Targets</summary>
+          <summary>Monthly targets</summary>
+          <p class="hint" style="margin:8px 0 0">Set 0 for no target.</p>
           <div class="targets">
-            <label class="hint">Completion %<input id="tgCompletion" type="number" min="0" max="100"></label>
-            <label class="hint">On-time %<input id="tgOnTime" type="number" min="0" max="100"></label>
-            <label class="hint">Attendance %<input id="tgAttendance" type="number" min="0" max="100"></label>
+            <label class="hint">Created<input id="tgCreated" type="number" min="0"></label>
+            <label class="hint">Developed<input id="tgDeveloped" type="number" min="0"></label>
+            <label class="hint">Tested<input id="tgTested" type="number" min="0"></label>
+            <label class="hint">Meetings<input id="tgMeetings" type="number" min="0"></label>
           </div>
           <div class="row-actions" style="margin-top:10px"><button class="btn small ghost" type="button" id="saveTargets">Save targets</button><span class="status" id="tgStatus"></span></div>
         </details>
@@ -160,19 +183,24 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     </div>
   </section>
 
-
   <section class="tiles" id="tiles" aria-label="KPIs for selected month"></section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div><h2>Issues per month</h2><div class="status">Created, developed and tested, last 12 months</div></div>
+      <div class="legend"><span><i class="sw" style="background:var(--s-created)"></i>Created</span><span><i class="sw" style="background:var(--s-developed)"></i>Developed</span><span><i class="sw" style="background:var(--s-tested)"></i>Tested</span></div>
+    </div>
+    <div id="chartIssues"></div>
+  </section>
 
   <section class="grid2">
     <div class="panel">
-      <div><h2>Tasks delivered</h2><div class="status">Planned vs completed, last 12 months</div></div>
-      <div class="legend"><span><i class="sw" style="background:var(--accent-soft)"></i>Planned</span><span><i class="sw" style="background:var(--accent)"></i>Completed</span></div>
-      <div id="chartTasks"></div>
+      <div><h2>Meetings attended</h2><div class="status">Per month, last 12 months</div></div>
+      <div id="chartMeetings"></div>
     </div>
     <div class="panel">
-      <div><h2>On-time &amp; meeting attendance</h2><div class="status">Percent per month, dashed lines are targets</div></div>
-      <div class="legend"><span><i class="sw line" style="background:var(--accent)"></i>On-time delivery</span><span><i class="sw line" style="background:var(--amber)"></i>Meeting attendance</span></div>
-      <div id="chartRates"></div>
+      <div><h2 id="intTitle">Integrations</h2><div class="status">Days worked on each integration this month</div></div>
+      <div id="intBreakdown"></div>
     </div>
   </section>
 
@@ -181,7 +209,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       <h2>Month log</h2>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Month</th><th>Days</th><th>Done</th><th>Completion</th><th>On-time</th><th>Attendance</th></tr></thead>
+          <thead><tr><th>Month</th><th>Days</th><th>Created</th><th>Developed</th><th>Tested</th><th>Meetings</th><th>Integrations</th></tr></thead>
           <tbody id="monthBody"></tbody>
         </table>
       </div>
@@ -190,7 +218,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       <div class="panel-head"><h2 id="dayTitle">Daily log</h2><span class="status" id="dayHint"></span></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Day</th><th>Planned</th><th>Done</th><th>On time</th><th>Meetings</th><th style="text-align:left">Note</th></tr></thead>
+          <thead><tr><th>Day</th><th>Created</th><th>Dev.</th><th>Tested</th><th>Meet.</th><th style="text-align:left">Integrations · note</th></tr></thead>
           <tbody id="dayBody"></tbody>
         </table>
       </div>
@@ -207,27 +235,59 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
 (function(){
   "use strict";
   const DATA_PATH = "data.json";
+  const COUNTS = [
+    {key:"created",   label:"Issues created",   short:"Created",   color:"var(--s-created)"},
+    {key:"developed", label:"Issues developed", short:"Developed", color:"var(--s-developed)"},
+    {key:"tested",    label:"Issues tested",    short:"Tested",    color:"var(--s-tested)"},
+    {key:"meetings",  label:"Meetings attended",short:"Meetings",  color:"var(--s-meet)"}
+  ];
+  const DEFAULT_TARGETS = {created:0, developed:0, tested:0, meetings:0};
   const $ = id => document.getElementById(id);
   const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const WEEKDAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const mLabel = id => { const [y,m] = id.split("-"); return MONTHS[+m-1]+" "+y; };
   const mShort = id => { const [y,m] = id.split("-"); return MONTHS[+m-1]+" "+y.slice(2); };
   const dLabel = d => { const dt = new Date(d+"T12:00:00"); return WEEKDAYS[dt.getDay()]+" "+(+d.slice(8)); };
-  const pct = (a,b) => b > 0 ? (a/b)*100 : null;
-  const fmt = v => v==null ? "—" : (Math.round(v*10)/10).toString();
   const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const store = {
     get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
     set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
     del(k){ try{ localStorage.removeItem(k); }catch(e){} }
   };
+  const todayStr = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 
   // ---------- state ----------
-  let doc = { targets:{completion:90,onTime:90,attendance:95}, days:[] };
-  let sha = null;           // data.json blob sha, needed for GitHub writes
-  let auth = null;          // {token, repo, branch}
-  let selected = null;      // "YYYY-MM"
-  let editingDay = null;    // "YYYY-MM-DD"
+  let doc = { targets:{...DEFAULT_TARGETS}, integrations:[], days:[] };
+  let sha = null, auth = null, selected = null, editingDay = null;
+  let formInts = new Set();
+
+  // ---------- data ----------
+  function normalize(j){
+    j = j || {};
+    const targets = {...DEFAULT_TARGETS};
+    if(j.targets) COUNTS.forEach(c=>{ const v = +j.targets[c.key]; if(v>=0) targets[c.key] = v; });
+    const days = (Array.isArray(j.days) ? j.days : []).filter(d=>d && /^\d{4}-\d{2}-\d{2}$/.test(d.date)).map(d=>({
+      date:d.date,
+      created:+d.created||0, developed:+d.developed||0, tested:+d.tested||0,
+      meetings:+(d.meetings!=null ? d.meetings : d.attended)||0,
+      integrations:Array.isArray(d.integrations) ? d.integrations.map(String).filter(Boolean) : [],
+      notes:d.notes ? String(d.notes) : ""
+    })).sort((a,b)=>a.date.localeCompare(b.date));
+    const ints = new Set(Array.isArray(j.integrations) ? j.integrations.map(String).filter(Boolean) : []);
+    days.forEach(d=>d.integrations.forEach(i=>ints.add(i)));
+    return { targets, integrations:[...ints].sort((a,b)=>a.localeCompare(b)), days, updatedAt:j.updatedAt||null };
+  }
+  function monthsAgg(){
+    const map = new Map();
+    doc.days.forEach(d=>{
+      const k = d.date.slice(0,7);
+      if(!map.has(k)) map.set(k,{month:k, days:0, created:0, developed:0, tested:0, meetings:0, ints:new Map()});
+      const m = map.get(k); m.days++;
+      COUNTS.forEach(c=>m[c.key]+=d[c.key]);
+      d.integrations.forEach(i=>m.ints.set(i,(m.ints.get(i)||0)+1));
+    });
+    return [...map.values()].sort((a,b)=>a.month.localeCompare(b.month));
+  }
 
   // ---------- GitHub API ----------
   function guessRepo(){
@@ -244,17 +304,14 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     if(!res.ok){ const e = new Error("GitHub "+res.status); e.status = res.status; throw e; }
     return res.json();
   }
-  async function loadFromGitHub(){
-    const j = await gh("GET");
-    sha = j.sha;
-    return normalize(JSON.parse(b64decode(j.content)));
-  }
-  // Apply a change to the latest copy on GitHub and commit it. Retries once if the file moved underneath us.
+  async function loadFromGitHub(){ const j = await gh("GET"); sha = j.sha; return normalize(JSON.parse(b64decode(j.content))); }
   async function commit(change, message){
     for(let attempt=0; attempt<2; attempt++){
       const fresh = await loadFromGitHub();
       change(fresh);
       fresh.days.sort((a,b)=>a.date.localeCompare(b.date));
+      const ints = new Set(fresh.integrations); fresh.days.forEach(d=>d.integrations.forEach(i=>ints.add(i)));
+      fresh.integrations = [...ints].sort((a,b)=>a.localeCompare(b));
       fresh.updatedAt = new Date().toISOString();
       try{
         const r = await gh("PUT", { message, content: b64encode(JSON.stringify(fresh, null, 2)+"\n"), sha, branch: auth.branch });
@@ -264,34 +321,11 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
   }
   function ghError(e){
     if(e.status===401) return "GitHub rejected the token. Check it hasn't expired and paste it again.";
-    if(e.status===403) return "The token can't write here. Give it Contents: Read and write on this repository.";
+    if(e.status===403) return "The token can't write here. Give it write access to this repository's contents.";
     if(e.status===404) return "Couldn't find data.json in that repository and branch. Check the repository name and branch.";
     if(e.status===409 || e.status===422) return "The file changed while saving. Try again.";
     return "Couldn't reach GitHub. Check your connection and try again.";
   }
-
-  function normalize(j){
-    const t = Object.assign({completion:90,onTime:90,attendance:95}, j && j.targets);
-    const days = (j && Array.isArray(j.days) ? j.days : []).filter(d=>d && /^\d{4}-\d{2}-\d{2}$/.test(d.date)).map(d=>({
-      date:d.date, planned:+d.planned||0, completed:+d.completed||0, onTime:+d.onTime||0, invited:+d.invited||0, attended:+d.attended||0, notes:d.notes?String(d.notes):""
-    })).sort((a,b)=>a.date.localeCompare(b.date));
-    return { targets:t, days, updatedAt: j && j.updatedAt };
-  }
-
-  // ---------- derived ----------
-  function monthsAgg(){
-    const map = new Map();
-    doc.days.forEach(d=>{
-      const k = d.date.slice(0,7);
-      if(!map.has(k)) map.set(k,{month:k,days:0,planned:0,completed:0,onTime:0,invited:0,attended:0});
-      const m = map.get(k); m.days++;
-      ["planned","completed","onTime","invited","attended"].forEach(f=>m[f]+=d[f]);
-    });
-    return [...map.values()].sort((a,b)=>a.month.localeCompare(b.month));
-  }
-  const metrics = r => ({ completion:pct(r.completed,r.planned), onTime:pct(r.onTime,r.completed), attendance:pct(r.attended,r.invited) });
-  function status(v,t){ if(v==null) return "none"; if(v>=t) return "good"; if(v>=t-10) return "warn"; return "bad"; }
-  const STATUS_TXT = {good:"On target",warn:"Near target",bad:"Below target",none:"No data"};
 
   // ---------- render ----------
   function renderSelect(list){
@@ -300,113 +334,140 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     $("monthSel").innerHTML = rev.map(r=>`<option value="${r.month}"${r.month===selected?" selected":""}>${mLabel(r.month)}</option>`).join("");
     $("monthSel").disabled = !rev.length;
   }
-
-  function tile(name, big, isPct, st, detail, delta, target){
-    const meter = isPct ? `<div class="meter"><i style="width:${big==null?0:Math.min(100,big)}%;background:var(--${st==="none"?"accent":st})"></i><b style="left:calc(${target}% - 1px)" title="Target ${target}%"></b></div>` : "";
-    return `<article class="tile">
-      <div class="tile-top"><span class="tile-label">${name}</span><span class="pill ${st}">${STATUS_TXT[st]}</span></div>
-      <div class="big">${fmt(big)}${isPct&&big!=null?"<small>%</small>":""}</div>${meter}
-      <div class="tile-foot"><span>${detail}</span>${delta}</div></article>`;
-  }
-  function deltaTxt(cur, prev, unit){
-    if(cur==null || prev==null) return "";
+  function deltaTxt(cur, prev){
+    if(prev==null) return `<span>No previous month</span>`;
     const d = cur-prev, cls = d>0?"up":d<0?"down":"";
-    return `<span class="delta ${cls}">${d>0?"▲":d<0?"▼":"■"} ${fmt(Math.abs(d))}${unit} vs last month</span>`;
+    return `<span class="delta ${cls}">${d>0?"▲":d<0?"▼":"■"} ${Math.abs(d)} vs last month</span>`;
+  }
+  function targetState(value, target, month){
+    if(!target) return {st:"none", txt:"No target"};
+    if(value>=target) return {st:"good", txt:"On target"};
+    if(month===todayStr().slice(0,7)) return {st:"none", txt:"In progress"};
+    return value>=target*0.8 ? {st:"warn", txt:"Near target"} : {st:"bad", txt:"Below target"};
   }
   function renderTiles(list){
     const i = list.findIndex(r=>r.month===selected), el = $("tiles");
     if(i<0){ el.innerHTML = `<div class="tile" style="grid-column:1/-1"><div class="empty">No days logged yet. Once days are added, this month's KPIs appear here.</div></div>`; return; }
-    const r = list[i], m = metrics(r), p = i>0 ? list[i-1] : null, pm = p ? metrics(p) : {}, t = doc.targets;
-    el.innerHTML =
-      tile("Tasks completed", r.completed, false, status(m.completion,t.completion), `${r.completed} of ${r.planned} planned · ${fmt(m.completion)}% (target ${t.completion}%) · ${r.days} day${r.days===1?"":"s"} logged`, deltaTxt(r.completed, p&&p.completed, ""), 0) +
-      tile("On-time delivery", m.onTime, true, status(m.onTime,t.onTime), `${r.onTime} of ${r.completed} on time · target ${t.onTime}%`, deltaTxt(m.onTime, pm.onTime, " pts"), t.onTime) +
-      tile("Meeting attendance", m.attendance, true, status(m.attendance,t.attendance), `${r.attended} of ${r.invited} attended · target ${t.attendance}%`, deltaTxt(m.attendance, pm.attendance, " pts"), t.attendance);
+    const r = list[i], p = i>0 ? list[i-1] : null;
+    let html = COUNTS.map(c=>{
+      const v = r[c.key], t = doc.targets[c.key], s = targetState(v, t, r.month);
+      const meter = t ? `<div class="meter"><i style="width:${Math.min(100, v/t*100)}%;background:${c.color}"></i></div>` : "";
+      return `<article class="tile">
+        <div class="tile-top"><span class="tile-label"><i class="sw" style="background:${c.color}"></i>${c.label}</span><span class="pill ${s.st}">${s.txt}</span></div>
+        <div class="big">${v}</div>${meter}
+        <div class="tile-foot"><span>${t ? `Target ${t} · ` : ""}${r.days} day${r.days===1?"":"s"} logged</span>${deltaTxt(v, p ? p[c.key] : null)}</div>
+      </article>`;
+    }).join("");
+    const names = [...r.ints.entries()].sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+    html += `<article class="tile">
+      <div class="tile-top"><span class="tile-label">Integrations worked on</span></div>
+      <div class="big">${names.length}</div>
+      <div class="chips-inline">${names.length ? esc(names.join(" · ")) : "None logged this month"}</div>
+      <div class="tile-foot">${deltaTxt(names.length, p ? p.ints.size : null)}</div>
+    </article>`;
+    el.innerHTML = html;
   }
 
-  const W=640,H=230,PL=34,PR=10,PT=12,PB=28;
-  function chartTasks(all){
-    const list = all.slice(-12), el = $("chartTasks");
+  function niceStep(max){ const raw = Math.max(1, max)/4; const pow = Math.pow(10, Math.floor(Math.log10(raw))); const n = raw/pow; return (n<=1?1:n<=2?2:n<=5?5:10)*pow; }
+  function barChart(el, list, series, aria){
+    const W = Math.max(300, Math.round(el.clientWidth || 600));
     if(!list.length){ el.innerHTML = `<div class="empty">The chart appears after the first logged day.</div>`; return; }
-    const max = Math.max(4, ...list.map(r=>Math.max(r.planned,r.completed)));
-    const step = Math.ceil(max/4), top = step*4, y = v => PT + (H-PT-PB)*(1 - v/top), bw = (W-PL-PR)/list.length;
-    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Tasks planned and completed per month">`;
-    for(let k=0;k<=4;k++){ const v=k*step, yy=y(v); s+=`<line x1="${PL}" x2="${W-PR}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${PL-6}" y="${yy+4}" text-anchor="end">${v}</text>`; }
+    const H=230, PL=34, PR=10, PT=14, PB=28;
+    const max = Math.max(1, ...list.flatMap(r=>series.map(s=>r[s.key])));
+    const step = Math.max(1, Math.ceil(niceStep(max))), top = step*Math.ceil(max/step);
+    const y = v => PT + (H-PT-PB)*(1 - v/top), bw = (W-PL-PR)/list.length;
+    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${aria}">`;
+    for(let v=0; v<=top; v+=step){ const yy=y(v); s+=`<line x1="${PL}" x2="${W-PR}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${PL-6}" y="${yy+4}" text-anchor="end">${v}</text>`; }
     list.forEach((r,i)=>{
-      const cx = PL + i*bw + bw/2, g = Math.min(18, bw*0.28), gap = 3, sel = r.month===selected;
-      s+=`<rect x="${cx-g-gap/2}" y="${y(r.planned)}" width="${g}" height="${y(0)-y(r.planned)}" rx="2" fill="var(--accent-soft)"><title>${mLabel(r.month)}: ${r.planned} planned</title></rect>`;
-      s+=`<rect x="${cx+gap/2}" y="${y(r.completed)}" width="${g}" height="${y(0)-y(r.completed)}" rx="2" fill="var(--accent)" opacity="${sel?1:.75}"><title>${mLabel(r.month)}: ${r.completed} completed</title></rect>`;
+      const cx = PL + i*bw + bw/2, gap = 2, g = Math.min(18, (bw*0.7 - gap*(series.length-1))/series.length), sel = r.month===selected;
+      const x0 = cx - (g*series.length + gap*(series.length-1))/2;
+      series.forEach((sr,k)=>{
+        const v = r[sr.key], h = y(0)-y(v);
+        s+=`<rect x="${(x0 + k*(g+gap)).toFixed(1)}" y="${y(v).toFixed(1)}" width="${g.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="2" fill="${sr.color}" opacity="${sel?1:.72}"><title>${mLabel(r.month)} · ${sr.short}: ${v}</title></rect>`;
+      });
       s+=`<text x="${cx}" y="${H-8}" text-anchor="middle" style="${sel?"fill:var(--fg);font-weight:500":""}">${mShort(r.month)}</text>`;
     });
     el.innerHTML = s + `</svg>`;
   }
-  function chartRates(all){
-    const list = all.slice(-12), el = $("chartRates");
-    if(!list.length){ el.innerHTML = `<div class="empty">The chart appears after the first logged day.</div>`; return; }
-    const vals = list.flatMap(r=>{ const m=metrics(r); return [m.onTime,m.attendance]; }).filter(v=>v!=null);
-    const lo = Math.max(0, Math.min(50, Math.floor((Math.min(100,...vals, doc.targets.onTime, doc.targets.attendance)-5)/10)*10));
-    const y = v => PT + (H-PT-PB)*(1 - (v-lo)/(100-lo)), bw = (W-PL-PR)/list.length, x = i => PL + bw*i + bw/2;
-    let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="On-time delivery and meeting attendance percent per month">`;
-    for(let v=lo; v<=100; v+=10){ const yy=y(v); s+=`<line x1="${PL}" x2="${W-PR}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${PL-6}" y="${yy+4}" text-anchor="end">${v}</text>`; }
-    [["onTime","var(--accent)"],["attendance","var(--amber)"]].forEach(([k,c])=>{ const yy=y(doc.targets[k]); s+=`<line x1="${PL}" x2="${W-PR}" y1="${yy}" y2="${yy}" stroke="${c}" stroke-dasharray="4 4" opacity=".6"/>`; });
-    [["onTime","var(--accent)","On-time"],["attendance","var(--amber)","Attendance"]].forEach(([k,c,n])=>{
-      const pts = list.map((r,i)=>{ const v=metrics(r)[k]; return v==null?null:[x(i),y(v),v,r.month]; });
-      let d="", pen=false;
-      pts.forEach(p=>{ if(!p){pen=false;return;} d+=(pen?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1); pen=true; });
-      s+=`<path d="${d}" fill="none" stroke="${c}" stroke-width="2.25" stroke-linejoin="round"/>`;
-      pts.forEach(p=>{ if(!p) return; const sel=p[3]===selected; s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${sel?5:3.2}" fill="${sel?c:"var(--surface)"}" stroke="${c}" stroke-width="2"><title>${mLabel(p[3])} ${n}: ${fmt(p[2])}%</title></circle>`; });
-    });
-    list.forEach((r,i)=>{ const sel=r.month===selected; s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle" style="${sel?"fill:var(--fg);font-weight:500":""}">${mShort(r.month)}</text>`; });
-    el.innerHTML = s + `</svg>`;
+  function renderIntegrations(list){
+    const r = list.find(x=>x.month===selected), el = $("intBreakdown");
+    $("intTitle").textContent = selected ? "Integrations · " + mLabel(selected) : "Integrations";
+    if(!r || !r.ints.size){ el.innerHTML = `<div class="empty">No integrations logged this month.</div>`; return; }
+    const rows = [...r.ints.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0]));
+    const max = rows[0][1];
+    el.innerHTML = `<div class="hbar">` + rows.map(([n,c])=>`<span class="name">${esc(n)}</span><span class="track"><i style="width:${c/max*100}%"></i></span><span class="n">${c} day${c===1?"":"s"}</span>`).join("") + `</div>`;
   }
-
   function renderMonthTable(list){
-    const t = doc.targets, rev = list.slice().reverse();
-    const cell = (v,tg) => `${fmt(v)}${v==null?"":"%"}<span class="dot ${status(v,tg)}"></span>`;
-    $("monthBody").innerHTML = rev.length ? rev.map(r=>{ const m=metrics(r); return `<tr class="click${r.month===selected?" sel":""}" data-m="${r.month}" tabindex="0">
-      <td>${mLabel(r.month)}</td><td>${r.days}</td><td>${r.completed}/${r.planned}</td><td>${cell(m.completion,t.completion)}</td><td>${cell(m.onTime,t.onTime)}</td><td>${cell(m.attendance,t.attendance)}</td></tr>`; }).join("")
-      : `<tr><td colspan="6" class="empty">No months yet.</td></tr>`;
+    const rev = list.slice().reverse();
+    $("monthBody").innerHTML = rev.length ? rev.map(r=>`<tr class="click${r.month===selected?" sel":""}" data-m="${r.month}" tabindex="0">
+      <td>${mLabel(r.month)}</td><td>${r.days}</td><td>${r.created}</td><td>${r.developed}</td><td>${r.tested}</td><td>${r.meetings}</td><td>${r.ints.size}</td></tr>`).join("")
+      : `<tr><td colspan="7" class="empty">No months yet.</td></tr>`;
   }
   function renderDayTable(){
     const days = selected ? doc.days.filter(d=>d.date.startsWith(selected)).reverse() : [];
-    $("dayTitle").textContent = selected ? "Daily log · "+mLabel(selected) : "Daily log";
+    $("dayTitle").textContent = selected ? "Daily log · " + mLabel(selected) : "Daily log";
     $("dayHint").textContent = auth && days.length ? "Click a day to edit it" : "";
-    $("dayBody").innerHTML = days.length ? days.map(d=>`<tr class="${auth?"click":""}${d.date===editingDay?" sel":""}" data-d="${d.date}" ${auth?'tabindex="0"':""}>
-      <td>${dLabel(d.date)}</td><td>${d.planned}</td><td>${d.completed}</td><td>${d.onTime}</td><td>${d.attended}/${d.invited}</td><td class="note">${esc(d.notes)}</td></tr>`).join("")
-      : `<tr><td colspan="6" class="empty">No days logged for this month.</td></tr>`;
-  }
-  function renderFooter(){
-    $("updated").textContent = doc.updatedAt ? "Last updated " + new Date(doc.updatedAt).toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"}) : "No updates yet";
+    $("dayBody").innerHTML = days.length ? days.map(d=>{
+      const extra = [d.integrations.join(", "), d.notes].filter(Boolean).map(esc).join(" · ");
+      return `<tr class="${auth?"click":""}${d.date===editingDay?" sel":""}" data-d="${d.date}" ${auth?'tabindex="0"':""}>
+        <td>${dLabel(d.date)}</td><td>${d.created}</td><td>${d.developed}</td><td>${d.tested}</td><td>${d.meetings}</td><td class="wrap-cell">${extra || "—"}</td></tr>`;
+    }).join("") : `<tr><td colspan="6" class="empty">No days logged for this month.</td></tr>`;
   }
   function render(){
-    const list = monthsAgg();
-    renderSelect(list); renderTiles(list); chartTasks(list); chartRates(list); renderMonthTable(list); renderDayTable(); renderFooter();
+    const list = monthsAgg(), last12 = list.slice(-12);
+    renderSelect(list); renderTiles(list);
+    barChart($("chartIssues"), last12, COUNTS.slice(0,3), "Issues created, developed and tested per month");
+    barChart($("chartMeetings"), last12, [COUNTS[3]], "Meetings attended per month");
+    renderIntegrations(list); renderMonthTable(list); renderDayTable();
+    $("updated").textContent = doc.updatedAt ? "Last updated " + new Date(doc.updatedAt).toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"}) : "No updates yet";
   }
 
-  // ---------- owner UI ----------
-  const todayStr = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+  // ---------- owner form ----------
+  const FIELD = {created:"fCreated", developed:"fDeveloped", tested:"fTested", meetings:"fMeetings"};
+  function renderChips(){
+    const all = [...new Set([...doc.integrations, ...formInts])].sort((a,b)=>a.localeCompare(b));
+    $("intChips").innerHTML = all.length ? all.map(n=>`<button type="button" class="chip" aria-pressed="${formInts.has(n)}" data-int="${esc(n)}">${esc(n)}</button>`).join("")
+      : `<span class="hint">No integrations yet. Add the first one below.</span>`;
+  }
   function fillForm(date){
     const d = doc.days.find(x=>x.date===date);
     editingDay = d ? date : null;
-    $("formTitle").textContent = d ? "Edit "+dLabel(date)+" "+MONTHS[+date.slice(5,7)-1] : "Log a day";
+    $("formTitle").textContent = d ? "Edit " + dLabel(date) + " " + MONTHS[+date.slice(5,7)-1] : "Log a day";
     $("fDate").value = date;
-    ["Planned","Completed","OnTime","Invited","Attended"].forEach(k=>{ const f=k[0].toLowerCase()+k.slice(1); $("f"+k).value = d ? d[f] : ""; });
+    Object.entries(FIELD).forEach(([k,id])=>$(id).value = d ? d[k] : "");
+    formInts = new Set(d ? d.integrations : []);
     $("fNotes").value = d ? d.notes : "";
+    $("fNewInt").value = "";
     $("delBtn").hidden = !d; disarm(); $("fErr").textContent = ""; $("fOk").textContent = "";
-    renderDayTable();
+    renderChips(); renderDayTable();
   }
+  function addIntegration(){
+    const name = $("fNewInt").value.trim().replace(/\s+/g," ");
+    if(!name) return;
+    const existing = [...doc.integrations, ...formInts].find(n=>n.toLowerCase()===name.toLowerCase());
+    formInts.add(existing || name);
+    $("fNewInt").value = ""; renderChips();
+  }
+  $("intChips").addEventListener("click", e=>{
+    const b = e.target.closest("[data-int]"); if(!b) return;
+    const n = b.dataset.int; formInts.has(n) ? formInts.delete(n) : formInts.add(n);
+    b.setAttribute("aria-pressed", formInts.has(n));
+  });
+  $("addIntBtn").addEventListener("click", addIntegration);
+  $("fNewInt").addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); addIntegration(); } });
+
   function showOwner(){
     $("ownerArea").hidden = false;
     $("entryPanel").hidden = !auth; $("signedOut").hidden = !!auth; $("signedIn").hidden = !auth;
     $("ownerToggle").textContent = auth ? "Owner panel" : "Owner sign-in";
     if(auth){
-      $("whoami").textContent = `Saving to ${auth.repo} (${auth.branch}). Changes show for visitors about a minute after saving, once GitHub Pages redeploys.`;
-      $("tgCompletion").value=doc.targets.completion; $("tgOnTime").value=doc.targets.onTime; $("tgAttendance").value=doc.targets.attendance;
+      $("whoami").textContent = `Saving to ${auth.repo} (${auth.branch}). Visitors see changes about a minute after saving, once GitHub Pages redeploys.`;
+      $("tgCreated").value = doc.targets.created; $("tgDeveloped").value = doc.targets.developed; $("tgTested").value = doc.targets.tested; $("tgMeetings").value = doc.targets.meetings;
     } else {
       $("tRepo").value = $("tRepo").value || store.get("kpi.repo") || guessRepo();
       $("tBranch").value = store.get("kpi.branch") || $("tBranch").value || "main";
     }
   }
-
   $("ownerToggle").addEventListener("click", ()=>{ const a=$("ownerArea"); if(a.hidden){ showOwner(); a.scrollIntoView({behavior:"smooth",block:"start"}); } else a.hidden = true; });
 
   $("signInBtn").addEventListener("click", async ()=>{
@@ -417,7 +478,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     try{
       doc = await loadFromGitHub();
       store.set("kpi.token", token); store.set("kpi.repo", repo); store.set("kpi.branch", branch);
-      $("tToken").value = ""; showOwner(); render(); fillForm(todayStr());
+      $("tToken").value = ""; $("banner").hidden = true; showOwner(); render(); fillForm(todayStr());
     }catch(e){ auth = null; $("sErr").textContent = ghError(e); }
     btn.disabled = false; btn.textContent = "Sign in";
   });
@@ -427,13 +488,16 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
 
   $("form").addEventListener("submit", async e=>{
     e.preventDefault();
-    const n = id => $(id).value.trim()==="" ? NaN : Number($(id).value);
-    const r = { date:$("fDate").value, planned:n("fPlanned"), completed:n("fCompleted"), onTime:n("fOnTime"), invited:n("fInvited"), attended:n("fAttended"), notes:$("fNotes").value.trim() };
     const err = $("fErr"); $("fOk").textContent = "";
+    if($("fNewInt").value.trim()) addIntegration();
+    const r = { date:$("fDate").value, integrations:[...formInts].sort((a,b)=>a.localeCompare(b)), notes:$("fNotes").value.trim() };
     if(!/^\d{4}-\d{2}-\d{2}$/.test(r.date)) return err.textContent = "Pick a date.";
-    for(const k of ["planned","completed","onTime","invited","attended"]) if(!Number.isInteger(r[k]) || r[k]<0) return err.textContent = "Enter whole numbers of 0 or more in every count field.";
-    if(r.onTime > r.completed) return err.textContent = "Completed on time can't be more than tasks completed.";
-    if(r.attended > r.invited) return err.textContent = "Meetings attended can't be more than meetings invited.";
+    for(const [k,id] of Object.entries(FIELD)){
+      const raw = $(id).value.trim(), v = raw==="" ? 0 : Number(raw);
+      if(!Number.isInteger(v) || v<0) return err.textContent = "Counts must be whole numbers of 0 or more.";
+      r[k] = v;
+    }
+    if(!r.created && !r.developed && !r.tested && !r.meetings && !r.integrations.length && !r.notes) return err.textContent = "Enter at least one count, integration or note.";
     err.textContent = "";
     const btn = $("saveBtn"); btn.disabled = true; btn.textContent = "Saving…";
     try{
@@ -449,24 +513,25 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     if(!editingDay) return;
     const b = $("delBtn");
     if(!armed){ armed = true; b.classList.add("armed"); b.textContent = "Confirm delete"; return; }
-    b.disabled = true;
-    const date = editingDay;
+    b.disabled = true; const date = editingDay;
     try{ await commit(d=>{ d.days = d.days.filter(x=>x.date!==date); }, `KPI log: remove ${date}`); render(); fillForm(todayStr()); $("fOk").textContent = "Day deleted"; }
     catch(x){ $("fErr").textContent = ghError(x); disarm(); }
     b.disabled = false;
   });
 
   $("saveTargets").addEventListener("click", async ()=>{
-    const t = { completion:+$("tgCompletion").value, onTime:+$("tgOnTime").value, attendance:+$("tgAttendance").value };
-    if(Object.values(t).some(v=>!(v>=0 && v<=100))) return $("tgStatus").textContent = "Targets must be between 0 and 100.";
+    const t = { created:+$("tgCreated").value||0, developed:+$("tgDeveloped").value||0, tested:+$("tgTested").value||0, meetings:+$("tgMeetings").value||0 };
+    if(Object.values(t).some(v=>!Number.isInteger(v) || v<0)) return $("tgStatus").textContent = "Targets must be whole numbers of 0 or more.";
     $("tgStatus").textContent = "Saving…";
     try{ await commit(d=>{ d.targets = t; }, "KPI targets updated"); render(); $("tgStatus").textContent = "Targets saved"; }
     catch(x){ $("tgStatus").textContent = ghError(x); }
   });
 
   $("exportBtn").addEventListener("click", ()=>{
-    const rows = [["date","planned","completed","on_time","meetings_invited","meetings_attended","notes"]].concat(doc.days.map(d=>[d.date,d.planned,d.completed,d.onTime,d.invited,d.attended,'"'+d.notes.replace(/"/g,'""')+'"']));
-    const blob = new Blob([rows.map(r=>r.join(",")).join("\n")], {type:"text/csv"});
+    const q = s => '"' + String(s).replace(/"/g,'""') + '"';
+    const rows = [["date","issues_created","issues_developed","issues_tested","meetings_attended","integrations","notes"]]
+      .concat(doc.days.map(d=>[d.date,d.created,d.developed,d.tested,d.meetings,q(d.integrations.join("; ")),q(d.notes)]));
+    const blob = new Blob(["﻿" + rows.map(r=>r.join(",")).join("\n")], {type:"text/csv"});
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "kpi-days.csv"; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
   });
@@ -481,6 +546,8 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     $(id).addEventListener("click", pickRow);
     $(id).addEventListener("keydown", e=>{ if(e.key==="Enter") pickRow(e); });
   });
+
+  let rt; window.addEventListener("resize", ()=>{ clearTimeout(rt); rt = setTimeout(render, 150); });
 
   // ---------- boot ----------
   (async ()=>{

@@ -2,9 +2,13 @@
 
 A static KPI dashboard hosted on GitHub Pages. You log each day, and the page adds the days up into monthly KPIs:
 
-- **Completion rate** = tasks completed ÷ tasks planned
-- **On-time delivery %** = tasks completed on time ÷ tasks completed
-- **Meeting attendance %** = meetings attended ÷ meetings invited
+- **Issues created**
+- **Issues developed**
+- **Issues tested**
+- **Meetings attended**
+- **Integrations worked on**: which integrations you touched, and on how many days each month
+
+You can set an optional monthly target for each count in the owner panel.
 
 All data lives in `data.json` in this repository. Every save from the page is a commit, so the git history is also a backup of your data.
 
@@ -36,7 +40,7 @@ The token is saved only in that browser. Sign in once on each device you use (la
 
 ## Daily routine
 
-Open the site, click **Today**, fill in the counts, and click **Save day**. To fix a day, click it in the daily log. Visitors see the change about a minute later, once Pages redeploys.
+Open the site, click **Today**, fill in the counts, tap the integrations you worked on (or add a new one), and click **Save day**. To fix a day, click it in the daily log. Visitors see the change about a minute later, once Pages redeploys.
 
 ## Notes
 

@@ -1,5 +1,6 @@
 {
-  "targets": { "completion": 90, "onTime": 90, "attendance": 95 },
+  "targets": { "created": 0, "developed": 0, "tested": 0, "meetings": 0 },
+  "integrations": [],
   "days": [],
   "updatedAt": null
 }
