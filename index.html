@@ -8,11 +8,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: header → owner entry (signed in only) → 5 KPI tiles for the month → issues trend (full width) → meetings trend + integrations breakdown → month log + daily log */
+/* Layout: header → owner entry (signed in only) → 8 KPI tiles → issue pipeline chart → bugs + meetings trends → 4 breakdowns for the month → issues-this-month table → month log + daily log */
 :root{
   --bg:#F3F5F6; --surface:#FFFFFF; --fg:#16232B; --muted:#5C6B74; --line:#DCE2E5;
   --accent:#1F6A85; --accent-soft:#D6E8EF;
-  --s-created:#B8741A; --s-developed:#1F6A85; --s-tested:#6A5AA8; --s-meet:#3D7F74;
+  --s-created:#B8741A; --s-spec:#3D7F74; --s-developed:#1F6A85; --s-tested:#6A5AA8; --s-bug:#A3456A; --s-meet:#5E7A2C;
   --banner:#F4E6D2; --banner-fg:#8A5512;
   --good:#1E7A4F; --good-bg:#DDF1E6; --warn:#9A6A08; --warn-bg:#F7EBC9; --bad:#B3372F; --bad-bg:#F7DEDB; --none-bg:#E6EBED;
   --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
@@ -23,18 +23,19 @@
 @media (prefers-color-scheme:dark){:root{
   --bg:#0E161B; --surface:#152128; --fg:#E4ECEF; --muted:#93A4AD; --line:#26353D;
   --accent:#5FB3D1; --accent-soft:#1B3A47;
-  --s-created:#E0A552; --s-developed:#5FB3D1; --s-tested:#A596E6; --s-meet:#6CC2B3;
+  --s-created:#E0A552; --s-spec:#6CC2B3; --s-developed:#5FB3D1; --s-tested:#A596E6; --s-bug:#E083A8; --s-meet:#A6C46A;
   --banner:#3D2E19; --banner-fg:#E0A552;
   --good:#5CCB93; --good-bg:#16372A; --warn:#E5B94E; --warn-bg:#3A2F12; --bad:#EE8078; --bad-bg:#3E1D1B; --none-bg:#223038; color-scheme:dark}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.wrap{max-width:1160px;margin:0 auto;padding:28px 20px 56px;display:flex;flex-direction:column;gap:24px}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 56px;display:flex;flex-direction:column;gap:24px}
 header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
 .eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 h1{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,4vw,40px);line-height:1.1;margin:4px 0 0;text-wrap:balance}
 h2{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0}
+h3{font-size:14px;font-weight:600;margin:0;color:var(--fg)}
 .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 select,input,textarea,button{font:inherit;color:inherit}
 select,input,textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
@@ -45,21 +46,24 @@ select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-vis
 .btn.small{padding:4px 10px;font-size:13px;font-weight:500}
 .btn.danger{border-color:var(--bad);color:var(--bad);background:transparent}
 .btn.danger.armed{background:var(--bad);color:var(--surface)}
+.icon-btn{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:6px;width:36px;height:38px;cursor:pointer;font-size:18px;line-height:1}
+.icon-btn:hover{color:var(--bad);border-color:var(--bad)}
 .banner{background:var(--banner);color:var(--fg);border-radius:8px;padding:10px 14px;font-size:14px}
 .banner b{color:var(--banner-fg)}
-.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
-.tile-top{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0}
+.tile-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;min-width:0}
 .tile-label{font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:7px}
 .pill{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:99px;white-space:nowrap}
 .pill.good{background:var(--good-bg);color:var(--good)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)} .pill.none{background:var(--none-bg);color:var(--muted)}
-.big{font-family:var(--f-display);font-weight:700;font-size:42px;line-height:1;font-variant-numeric:tabular-nums}
+.big{font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:18px;color:var(--muted);font-weight:600}
 .meter{height:6px;background:var(--line);border-radius:3px;position:relative;overflow:hidden}
 .meter i{position:absolute;inset:0 auto 0 0;border-radius:3px}
-.tile-foot{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tile-foot{display:flex;flex-direction:column;gap:2px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .delta.up{color:var(--good)} .delta.down{color:var(--bad)}
-.chips-inline{font-size:12.5px;color:var(--muted);overflow-wrap:anywhere}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;align-items:start}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
 .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
@@ -71,41 +75,50 @@ svg text{font-family:var(--f-mono);font-size:12px;fill:var(--muted)}
 table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
 th,td{text-align:right;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 th:first-child,td:first-child{text-align:left}
+th.l,td.l{text-align:left}
 th{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 tr.sel td{background:var(--accent-soft)}
 tbody tr.click{cursor:pointer}
-td.wrap-cell{text-align:left;white-space:normal;color:var(--muted);font-size:13px;min-width:150px}
-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+td.wrap-cell{text-align:left;white-space:normal;color:var(--muted);font-size:13px;min-width:160px}
+.mono{font-family:var(--f-mono);font-size:13px}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11px;padding:1px 7px;border-radius:4px;background:var(--none-bg);color:var(--muted);margin:1px 2px 1px 0;white-space:nowrap}
+.tag.created{color:var(--s-created)} .tag.spec{color:var(--s-spec)} .tag.developed{color:var(--s-developed)} .tag.tested{color:var(--s-tested)}
+.tag.pass{background:var(--good-bg);color:var(--good)} .tag.fail{background:var(--bad-bg);color:var(--bad)}
+.tag.bug{background:var(--bad-bg);color:var(--bad)} .tag.feature{background:var(--accent-soft);color:var(--accent)} .tag.enhancement{background:var(--warn-bg);color:var(--warn)}
+form{display:flex;flex-direction:column;gap:16px}
+.frow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;color:var(--muted)}
-label input,label textarea{width:100%}
-form .full{grid-column:1/-1}
-form .half{grid-column:span 2}
+label input,label textarea,label select{width:100%}
 .hint{font-size:12px;color:var(--muted);font-weight:400}
 .err{color:var(--bad);font-size:13px;min-height:1em}
 .ok{color:var(--good);font-size:13px}
 .row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.empty{padding:28px 8px;text-align:center;color:var(--muted)}
-fieldset{border:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;min-width:0}
-legend{font-size:13px;font-weight:500;color:var(--muted);padding:0}
+.empty{padding:24px 8px;text-align:center;color:var(--muted)}
+fieldset{border:1px solid var(--line);border-radius:8px;padding:12px 14px 14px;margin:0;display:flex;flex-direction:column;gap:10px;min-width:0}
+legend{font-size:13px;font-weight:600;color:var(--fg);padding:0 6px}
+.act-head,.act-row{display:grid;grid-template-columns:minmax(80px,.8fr) minmax(110px,1fr) minmax(120px,1fr) minmax(100px,.9fr) minmax(140px,1.4fr) 36px;gap:8px;align-items:center}
+.act-head{font-size:12px;color:var(--muted);font-weight:500}
+.act-row select,.act-row input{width:100%}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:99px;padding:4px 12px;font-size:13px;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
 .add-row{display:flex;gap:8px}
 .add-row input{flex:1}
 details summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)}
-.targets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
+.targets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
 .status{font-size:13px;color:var(--muted)}
-.hbar{display:grid;grid-template-columns:minmax(90px,max-content) 1fr auto;gap:8px 12px;align-items:center;font-size:14px}
-.hbar .track{height:12px;background:var(--line);border-radius:3px;overflow:hidden}
+.hbar{display:grid;grid-template-columns:minmax(70px,max-content) 1fr auto;gap:8px 10px;align-items:center;font-size:14px}
+.hbar .track{height:10px;background:var(--line);border-radius:3px;overflow:hidden}
 .hbar .track i{display:block;height:100%;background:var(--accent);border-radius:3px}
-.hbar .n{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
-.hbar .name{overflow-wrap:anywhere}
+.hbar .n{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;white-space:nowrap}
+.hbar .name{overflow-wrap:anywhere;font-size:13.5px}
 footer{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 footer button{background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font-size:12px}
-@media (max-width:1000px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
-@media (max-width:620px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))} form,.targets{grid-template-columns:repeat(2,minmax(0,1fr))} form .half{grid-column:1/-1}}
-@media (max-width:380px){.tiles{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:1000px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)} .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .act-head{display:none} .act-row{grid-template-columns:repeat(2,minmax(0,1fr)) ;padding-bottom:10px;border-bottom:1px solid var(--line)} .act-row .icon-btn{justify-self:end}}
+@media (max-width:620px){.frow{grid-template-columns:repeat(2,minmax(0,1fr))} .grid4{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:360px){.tiles{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:no-preference){.meter i,.hbar .track i{transition:width .4s ease}}
 </style>
 </head>
@@ -124,37 +137,49 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
 
   <div id="banner" class="banner" hidden></div>
 
-  <!-- Owner panel: hidden from visitors until opened from the footer -->
-  <section class="grid2" id="ownerArea" hidden>
+  <!-- Owner area: hidden from visitors until opened from the footer -->
+  <section id="ownerArea" style="display:flex;flex-direction:column;gap:16px" hidden>
     <div class="panel" id="entryPanel" hidden>
-      <div class="panel-head"><h2 id="formTitle">Log a day</h2><button class="btn small ghost" type="button" id="todayBtn">Today</button></div>
+      <div class="panel-head"><h2 id="formTitle">Log a day</h2><div class="row-actions"><input id="fDate" type="date" aria-label="Date"><button class="btn small ghost" type="button" id="todayBtn">Today</button></div></div>
       <form id="form" novalidate>
-        <label class="half">Date<input id="fDate" type="date" required></label>
-        <label class="half">Meetings attended<input id="fMeetings" type="number" min="0" step="1" inputmode="numeric"></label>
-        <label class="half">Issues created<input id="fCreated" type="number" min="0" step="1" inputmode="numeric"></label>
-        <label class="half">Issues developed<input id="fDeveloped" type="number" min="0" step="1" inputmode="numeric"></label>
-        <label class="half">Issues tested<input id="fTested" type="number" min="0" step="1" inputmode="numeric"></label>
-        <span class="half hint" style="align-self:end;padding-bottom:10px">Leave a count empty for 0.</span>
-        <fieldset class="full">
+        <fieldset>
+          <legend>Issues worked on</legend>
+          <div class="act-head" aria-hidden="true"><span>Issue #</span><span>Type</span><span>What you did</span><span>Test result</span><span>Module</span><span></span></div>
+          <div id="actRows" style="display:flex;flex-direction:column;gap:8px"></div>
+          <div class="row-actions"><button class="btn small ghost" type="button" id="addActBtn">+ Add issue</button><span class="hint">One row per issue and action. Tested twice? Add two rows.</span></div>
+        </fieldset>
+
+        <div class="frow">
+          <label>Bugs found <span class="hint">Any bug you found today</span><input id="fBugs" type="number" min="0" step="1" inputmode="numeric"></label>
+        </div>
+
+        <fieldset>
+          <legend>Meetings attended</legend>
+          <div class="frow" id="meetInputs"></div>
+        </fieldset>
+
+        <fieldset>
           <legend>Integrations worked on</legend>
           <div class="chips" id="intChips"></div>
           <div class="add-row"><input id="fNewInt" type="text" placeholder="Add an integration, e.g. HungerStation" aria-label="New integration name"><button class="btn small ghost" type="button" id="addIntBtn">Add</button></div>
         </fieldset>
-        <label class="full">Note <span class="hint">Optional, e.g. issue numbers</span><textarea id="fNotes" rows="2"></textarea></label>
-        <div class="err full" id="fErr" role="alert"></div>
-        <div class="row-actions full">
+
+        <label>Note <span class="hint">Optional</span><textarea id="fNotes" rows="2"></textarea></label>
+        <div class="err" id="fErr" role="alert"></div>
+        <div class="row-actions">
           <button class="btn" type="submit" id="saveBtn">Save day</button>
           <button class="btn danger" type="button" id="delBtn" hidden>Delete day</button>
           <span class="ok" id="fOk" aria-live="polite"></span>
         </div>
       </form>
+      <datalist id="moduleList"></datalist>
     </div>
 
     <div class="panel">
       <h2>Owner access</h2>
       <div id="signedOut">
         <p class="status" style="margin:0 0 12px">Paste a GitHub token that can write to this repository. It stays in this browser and is sent only to GitHub.</p>
-        <div style="display:grid;gap:10px">
+        <div style="display:grid;gap:10px;max-width:520px">
           <label>GitHub token<input id="tToken" type="password" autocomplete="off" placeholder="github_pat_… or ghp_…"></label>
           <label>Repository <span class="hint">owner/name, filled in automatically on GitHub Pages</span><input id="tRepo" type="text" placeholder="your-username/kpis"></label>
           <label>Branch<input id="tBranch" type="text" value="main"></label>
@@ -167,16 +192,12 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
         <details>
           <summary>Monthly targets</summary>
           <p class="hint" style="margin:8px 0 0">Set 0 for no target.</p>
-          <div class="targets">
-            <label class="hint">Created<input id="tgCreated" type="number" min="0"></label>
-            <label class="hint">Developed<input id="tgDeveloped" type="number" min="0"></label>
-            <label class="hint">Tested<input id="tgTested" type="number" min="0"></label>
-            <label class="hint">Meetings<input id="tgMeetings" type="number" min="0"></label>
-          </div>
+          <div class="targets" id="targetInputs"></div>
           <div class="row-actions" style="margin-top:10px"><button class="btn small ghost" type="button" id="saveTargets">Save targets</button><span class="status" id="tgStatus"></span></div>
         </details>
         <div class="row-actions" style="margin-top:14px">
-          <button class="btn small ghost" type="button" id="exportBtn">Export CSV</button>
+          <button class="btn small ghost" type="button" id="exportIssues">Export issues CSV</button>
+          <button class="btn small ghost" type="button" id="exportDays">Export days CSV</button>
           <button class="btn small ghost" type="button" id="signOutBtn">Sign out</button>
         </div>
       </div>
@@ -187,20 +208,37 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
 
   <section class="panel">
     <div class="panel-head">
-      <div><h2>Issues per month</h2><div class="status">Created, developed and tested, last 12 months</div></div>
-      <div class="legend"><span><i class="sw" style="background:var(--s-created)"></i>Created</span><span><i class="sw" style="background:var(--s-developed)"></i>Developed</span><span><i class="sw" style="background:var(--s-tested)"></i>Tested</span></div>
+      <div><h2>Issue pipeline</h2><div class="status">Issues per stage each month, last 12 months</div></div>
+      <div class="legend" id="pipeLegend"></div>
     </div>
-    <div id="chartIssues"></div>
+    <div id="chartPipe"></div>
   </section>
 
   <section class="grid2">
     <div class="panel">
-      <div><h2>Meetings attended</h2><div class="status">Per month, last 12 months</div></div>
-      <div id="chartMeetings"></div>
+      <div><h2>Bugs found</h2><div class="status">Per month, last 12 months</div></div>
+      <div id="chartBugs"></div>
     </div>
     <div class="panel">
-      <div><h2 id="intTitle">Integrations</h2><div class="status">Days worked on each integration this month</div></div>
-      <div id="intBreakdown"></div>
+      <div><h2>Meetings attended</h2><div class="status">Per month, last 12 months</div></div>
+      <div id="chartMeet"></div>
+    </div>
+  </section>
+
+  <section class="grid4">
+    <div class="panel"><h3>Issue types</h3><div id="bdTypes"></div></div>
+    <div class="panel"><h3>Modules</h3><div id="bdModules"></div></div>
+    <div class="panel"><h3>Integrations <span class="hint">days</span></h3><div id="bdInts"></div></div>
+    <div class="panel"><h3>Meetings by type</h3><div id="bdMeet"></div></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2 id="issuesTitle">Issues this month</h2><span class="status">Review rounds = times tested</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Issue</th><th class="l">Type</th><th class="l">Module</th><th class="l">Stages this month</th><th>Rounds</th><th class="l">Last result</th><th class="l">Last worked</th></tr></thead>
+        <tbody id="issueBody"></tbody>
+      </table>
     </div>
   </section>
 
@@ -209,7 +247,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       <h2>Month log</h2>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Month</th><th>Days</th><th>Created</th><th>Developed</th><th>Tested</th><th>Meetings</th><th>Integrations</th></tr></thead>
+          <thead><tr><th>Month</th><th>Created</th><th>Specs</th><th>Dev.</th><th>Tested</th><th>Pass</th><th>Bugs</th><th>Meet.</th></tr></thead>
           <tbody id="monthBody"></tbody>
         </table>
       </div>
@@ -218,7 +256,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
       <div class="panel-head"><h2 id="dayTitle">Daily log</h2><span class="status" id="dayHint"></span></div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Day</th><th>Created</th><th>Dev.</th><th>Tested</th><th>Meet.</th><th style="text-align:left">Integrations · note</th></tr></thead>
+          <thead><tr><th>Day</th><th class="l">Issues</th><th>Bugs</th><th>Meet.</th><th class="l">Integrations · note</th></tr></thead>
           <tbody id="dayBody"></tbody>
         </table>
       </div>
@@ -235,29 +273,39 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
 (function(){
   "use strict";
   const DATA_PATH = "data.json";
-  const COUNTS = [
-    {key:"created",   label:"Issues created",   short:"Created",   color:"var(--s-created)"},
-    {key:"developed", label:"Issues developed", short:"Developed", color:"var(--s-developed)"},
-    {key:"tested",    label:"Issues tested",    short:"Tested",    color:"var(--s-tested)"},
-    {key:"meetings",  label:"Meetings attended",short:"Meetings",  color:"var(--s-meet)"}
+  const ACTIONS = [
+    {key:"created",   label:"Created",      tile:"Issues created",   color:"var(--s-created)"},
+    {key:"spec",      label:"Spec written", tile:"Specs written",    color:"var(--s-spec)"},
+    {key:"developed", label:"Developed",    tile:"Issues developed", color:"var(--s-developed)"},
+    {key:"tested",    label:"Tested",       tile:"Issues tested",    color:"var(--s-tested)"}
   ];
-  const DEFAULT_TARGETS = {created:0, developed:0, tested:0, meetings:0};
+  const TYPES = [{key:"bug",label:"Bug"},{key:"feature",label:"Feature"},{key:"enhancement",label:"Enhancement"}];
+  const MEETINGS = [{key:"standup",label:"Stand-up"},{key:"internal",label:"Internal"},{key:"client",label:"Client"},{key:"other",label:"Other"}];
+  const TARGETS = [
+    {key:"created",label:"Created"},{key:"spec",label:"Specs"},{key:"developed",label:"Developed"},
+    {key:"tested",label:"Tested"},{key:"meetings",label:"Meetings"},{key:"passRate",label:"Pass rate %"}
+  ];
+  const DEFAULT_TARGETS = {created:0,spec:0,developed:0,tested:0,meetings:0,passRate:0};
   const $ = id => document.getElementById(id);
   const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const WEEKDAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
   const mLabel = id => { const [y,m] = id.split("-"); return MONTHS[+m-1]+" "+y; };
   const mShort = id => { const [y,m] = id.split("-"); return MONTHS[+m-1]+" "+y.slice(2); };
   const dLabel = d => { const dt = new Date(d+"T12:00:00"); return WEEKDAYS[dt.getDay()]+" "+(+d.slice(8)); };
+  const dLong = d => dLabel(d)+" "+MONTHS[+d.slice(5,7)-1];
   const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fmt = v => v==null ? "—" : (Math.round(v*10)/10).toString();
   const store = {
     get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
     set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
     del(k){ try{ localStorage.removeItem(k); }catch(e){} }
   };
   const todayStr = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+  const cleanIssue = s => String(s||"").trim().replace(/^#+/,"").trim();
+  const sortAlpha = arr => arr.sort((a,b)=>a.localeCompare(b));
 
   // ---------- state ----------
-  let doc = { targets:{...DEFAULT_TARGETS}, integrations:[], days:[] };
+  let doc = { targets:{...DEFAULT_TARGETS}, integrations:[], modules:[], days:[] };
   let sha = null, auth = null, selected = null, editingDay = null;
   let formInts = new Set();
 
@@ -265,28 +313,75 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
   function normalize(j){
     j = j || {};
     const targets = {...DEFAULT_TARGETS};
-    if(j.targets) COUNTS.forEach(c=>{ const v = +j.targets[c.key]; if(v>=0) targets[c.key] = v; });
-    const days = (Array.isArray(j.days) ? j.days : []).filter(d=>d && /^\d{4}-\d{2}-\d{2}$/.test(d.date)).map(d=>({
-      date:d.date,
-      created:+d.created||0, developed:+d.developed||0, tested:+d.tested||0,
-      meetings:+(d.meetings!=null ? d.meetings : d.attended)||0,
-      integrations:Array.isArray(d.integrations) ? d.integrations.map(String).filter(Boolean) : [],
-      notes:d.notes ? String(d.notes) : ""
-    })).sort((a,b)=>a.date.localeCompare(b.date));
+    if(j.targets) Object.keys(DEFAULT_TARGETS).forEach(k=>{ const v = +j.targets[k]; if(v>=0) targets[k] = v; });
+    const days = (Array.isArray(j.days) ? j.days : []).filter(d=>d && /^\d{4}-\d{2}-\d{2}$/.test(d.date)).map(d=>{
+      const acts = (Array.isArray(d.activities) ? d.activities : []).map(a=>({
+        issue: cleanIssue(a.issue),
+        type: TYPES.some(t=>t.key===a.type) ? a.type : "bug",
+        action: ACTIONS.some(x=>x.key===a.action) ? a.action : "developed",
+        result: a.action==="tested" && (a.result==="passed" || a.result==="failed") ? a.result : null,
+        module: a.module ? String(a.module).trim() : ""
+      })).filter(a=>a.issue);
+      const meetings = {}; MEETINGS.forEach(m=>meetings[m.key]=0);
+      if(d.meetings && typeof d.meetings === "object") MEETINGS.forEach(m=>meetings[m.key] = +d.meetings[m.key]||0);
+      else if(d.meetings!=null || d.attended!=null) meetings.other = +(d.meetings!=null ? d.meetings : d.attended)||0;
+      const out = { date:d.date, activities:acts, bugs:+d.bugs||0, meetings,
+        integrations: Array.isArray(d.integrations) ? d.integrations.map(String).filter(Boolean) : [],
+        notes: d.notes ? String(d.notes) : "" };
+      // Days saved by the earlier version kept plain counts; keep them so old months still add up.
+      const legacy = d.legacy || (d.activities ? null : {created:+d.created||0, developed:+d.developed||0, tested:+d.tested||0});
+      if(legacy && (legacy.created||legacy.developed||legacy.tested)) out.legacy = {created:+legacy.created||0, developed:+legacy.developed||0, tested:+legacy.tested||0};
+      return out;
+    }).sort((a,b)=>a.date.localeCompare(b.date));
     const ints = new Set(Array.isArray(j.integrations) ? j.integrations.map(String).filter(Boolean) : []);
-    days.forEach(d=>d.integrations.forEach(i=>ints.add(i)));
-    return { targets, integrations:[...ints].sort((a,b)=>a.localeCompare(b)), days, updatedAt:j.updatedAt||null };
+    const mods = new Set(Array.isArray(j.modules) ? j.modules.map(String).filter(Boolean) : []);
+    days.forEach(d=>{ d.integrations.forEach(i=>ints.add(i)); d.activities.forEach(a=>a.module && mods.add(a.module)); });
+    return { targets, integrations:sortAlpha([...ints]), modules:sortAlpha([...mods]), days, updatedAt:j.updatedAt||null };
   }
+
+  // Latest known type/module per issue, across all days
+  function issueInfo(){
+    const info = new Map();
+    doc.days.forEach(d=>d.activities.forEach(a=>{
+      const cur = info.get(a.issue) || {};
+      info.set(a.issue, {type:a.type||cur.type, module:a.module||cur.module||""});
+    }));
+    return info;
+  }
+
   function monthsAgg(){
-    const map = new Map();
+    const map = new Map(), info = issueInfo();
+    const blank = k => ({month:k, days:0, sets:{created:new Set(),spec:new Set(),developed:new Set(),tested:new Set()}, legacy:{created:0,developed:0,tested:0},
+      passed:0, failed:0, testRuns:0, bugs:0, meetings:{standup:0,internal:0,client:0,other:0}, ints:new Map(), issues:new Map()});
     doc.days.forEach(d=>{
       const k = d.date.slice(0,7);
-      if(!map.has(k)) map.set(k,{month:k, days:0, created:0, developed:0, tested:0, meetings:0, ints:new Map()});
+      if(!map.has(k)) map.set(k, blank(k));
       const m = map.get(k); m.days++;
-      COUNTS.forEach(c=>m[c.key]+=d[c.key]);
+      m.bugs += d.bugs;
+      MEETINGS.forEach(t=>m.meetings[t.key] += d.meetings[t.key]);
       d.integrations.forEach(i=>m.ints.set(i,(m.ints.get(i)||0)+1));
+      if(d.legacy) Object.keys(m.legacy).forEach(x=>m.legacy[x] += d.legacy[x]);
+      d.activities.forEach(a=>{
+        m.sets[a.action].add(a.issue);
+        const is = m.issues.get(a.issue) || {issue:a.issue, stages:new Set(), rounds:0, fails:0, lastResult:null, last:d.date};
+        is.stages.add(a.action); is.last = d.date;
+        if(a.action==="tested"){ m.testRuns++; is.rounds++; if(a.result==="passed"){ m.passed++; is.lastResult="passed"; } else if(a.result==="failed"){ m.failed++; is.fails++; is.lastResult="failed"; } }
+        m.issues.set(a.issue, is);
+      });
     });
-    return [...map.values()].sort((a,b)=>a.month.localeCompare(b.month));
+    return [...map.values()].sort((a,b)=>a.month.localeCompare(b.month)).map(m=>{
+      const c = k => m.sets[k].size + (m.legacy[k]||0);
+      const types = {bug:0,feature:0,enhancement:0}, modules = new Map();
+      m.issues.forEach((is,id)=>{ const inf = info.get(id)||{}; is.type = inf.type||"bug"; is.module = inf.module||""; types[is.type]++; if(is.module) modules.set(is.module,(modules.get(is.module)||0)+1); });
+      const testedIssues = m.sets.tested.size;
+      return Object.assign(m, {
+        created:c("created"), spec:c("spec"), developed:c("developed"), tested:c("tested"),
+        passRate: (m.passed+m.failed) ? m.passed/(m.passed+m.failed)*100 : null,
+        avgRounds: testedIssues ? m.testRuns/testedIssues : null,
+        meetTotal: MEETINGS.reduce((s,t)=>s+m.meetings[t.key],0),
+        types, modules
+      });
+    });
   }
 
   // ---------- GitHub API ----------
@@ -309,13 +404,10 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     for(let attempt=0; attempt<2; attempt++){
       const fresh = await loadFromGitHub();
       change(fresh);
-      fresh.days.sort((a,b)=>a.date.localeCompare(b.date));
-      const ints = new Set(fresh.integrations); fresh.days.forEach(d=>d.integrations.forEach(i=>ints.add(i)));
-      fresh.integrations = [...ints].sort((a,b)=>a.localeCompare(b));
-      fresh.updatedAt = new Date().toISOString();
+      const tidy = normalize(fresh); tidy.updatedAt = new Date().toISOString();
       try{
-        const r = await gh("PUT", { message, content: b64encode(JSON.stringify(fresh, null, 2)+"\n"), sha, branch: auth.branch });
-        sha = r.content.sha; doc = fresh; return;
+        const r = await gh("PUT", { message, content: b64encode(JSON.stringify(tidy, null, 2)+"\n"), sha, branch: auth.branch });
+        sha = r.content.sha; doc = tidy; return;
       }catch(e){ if(e.status!==409 || attempt) throw e; }
     }
   }
@@ -327,117 +419,185 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     return "Couldn't reach GitHub. Check your connection and try again.";
   }
 
-  // ---------- render ----------
+  // ---------- render: tiles ----------
   function renderSelect(list){
     const rev = list.slice().reverse();
     if(!selected || !rev.find(r=>r.month===selected)) selected = rev[0] ? rev[0].month : null;
     $("monthSel").innerHTML = rev.map(r=>`<option value="${r.month}"${r.month===selected?" selected":""}>${mLabel(r.month)}</option>`).join("");
     $("monthSel").disabled = !rev.length;
   }
-  function deltaTxt(cur, prev){
-    if(prev==null) return `<span>No previous month</span>`;
+  function deltaTxt(cur, prev, unit){
+    if(prev==null || cur==null) return `<span>No previous month to compare</span>`;
     const d = cur-prev, cls = d>0?"up":d<0?"down":"";
-    return `<span class="delta ${cls}">${d>0?"▲":d<0?"▼":"■"} ${Math.abs(d)} vs last month</span>`;
+    return `<span class="delta ${cls}">${d>0?"▲":d<0?"▼":"■"} ${fmt(Math.abs(d))}${unit||""} vs last month</span>`;
   }
   function targetState(value, target, month){
-    if(!target) return {st:"none", txt:"No target"};
-    if(value>=target) return {st:"good", txt:"On target"};
+    if(!target) return null;
+    if(value!=null && value>=target) return {st:"good", txt:"On target"};
     if(month===todayStr().slice(0,7)) return {st:"none", txt:"In progress"};
-    return value>=target*0.8 ? {st:"warn", txt:"Near target"} : {st:"bad", txt:"Below target"};
+    return value!=null && value>=target*0.8 ? {st:"warn", txt:"Near target"} : {st:"bad", txt:"Below target"};
+  }
+  function tile(o){
+    const pill = o.state ? `<span class="pill ${o.state.st}">${o.state.txt}</span>` : "";
+    const meter = o.target ? `<div class="meter"><i style="width:${Math.min(100,(o.value||0)/o.target*100)}%;background:${o.color}"></i></div>` : "";
+    return `<article class="tile">
+      <div class="tile-top"><span class="tile-label">${o.color?`<i class="sw" style="background:${o.color}"></i>`:""}${o.label}</span>${pill}</div>
+      <div class="big">${o.big}</div>${meter}
+      <div class="tile-foot">${o.foot.map(f=>`<span>${f}</span>`).join("")}${o.delta}</div></article>`;
   }
   function renderTiles(list){
     const i = list.findIndex(r=>r.month===selected), el = $("tiles");
     if(i<0){ el.innerHTML = `<div class="tile" style="grid-column:1/-1"><div class="empty">No days logged yet. Once days are added, this month's KPIs appear here.</div></div>`; return; }
-    const r = list[i], p = i>0 ? list[i-1] : null;
-    let html = COUNTS.map(c=>{
-      const v = r[c.key], t = doc.targets[c.key], s = targetState(v, t, r.month);
-      const meter = t ? `<div class="meter"><i style="width:${Math.min(100, v/t*100)}%;background:${c.color}"></i></div>` : "";
-      return `<article class="tile">
-        <div class="tile-top"><span class="tile-label"><i class="sw" style="background:${c.color}"></i>${c.label}</span><span class="pill ${s.st}">${s.txt}</span></div>
-        <div class="big">${v}</div>${meter}
-        <div class="tile-foot"><span>${t ? `Target ${t} · ` : ""}${r.days} day${r.days===1?"":"s"} logged</span>${deltaTxt(v, p ? p[c.key] : null)}</div>
-      </article>`;
-    }).join("");
-    const names = [...r.ints.entries()].sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
-    html += `<article class="tile">
-      <div class="tile-top"><span class="tile-label">Integrations worked on</span></div>
-      <div class="big">${names.length}</div>
-      <div class="chips-inline">${names.length ? esc(names.join(" · ")) : "None logged this month"}</div>
-      <div class="tile-foot">${deltaTxt(names.length, p ? p.ints.size : null)}</div>
-    </article>`;
-    el.innerHTML = html;
+    const r = list[i], p = i>0 ? list[i-1] : null, t = doc.targets;
+    const tg = k => t[k] ? `Target ${t[k]}${k==="passRate"?"%":""}` : "";
+    const tiles = ACTIONS.map(a=>{
+      const foot = [tg(a.key)].filter(Boolean);
+      if(a.key==="tested") foot.push(`${r.testRuns} test round${r.testRuns===1?"":"s"}${r.avgRounds!=null?` · avg ${fmt(r.avgRounds)} per issue`:""}`);
+      return tile({label:a.tile, color:a.color, big:r[a.key], value:r[a.key], target:t[a.key], state:targetState(r[a.key], t[a.key], r.month), foot, delta:deltaTxt(r[a.key], p&&p[a.key])});
+    });
+    tiles.push(tile({label:"Test pass rate", color:"var(--good)", big: r.passRate==null ? "—" : `${fmt(r.passRate)}<small>%</small>`, value:r.passRate, target:t.passRate,
+      state: r.passRate==null ? null : targetState(r.passRate, t.passRate, r.month), foot:[`${r.passed} passed · ${r.failed} failed`, tg("passRate")].filter(Boolean), delta:deltaTxt(r.passRate, p&&p.passRate, " pts")}));
+    tiles.push(tile({label:"Bugs found", color:"var(--s-bug)", big:r.bugs, foot:[`${r.days} day${r.days===1?"":"s"} logged`], delta:deltaTxt(r.bugs, p&&p.bugs)}));
+    tiles.push(tile({label:"Meetings attended", color:"var(--s-meet)", big:r.meetTotal, value:r.meetTotal, target:t.meetings, state:targetState(r.meetTotal, t.meetings, r.month),
+      foot:[MEETINGS.filter(m=>r.meetings[m.key]).map(m=>`${r.meetings[m.key]} ${m.label.toLowerCase()}`).join(" · ") || "None logged", tg("meetings")].filter(Boolean), delta:deltaTxt(r.meetTotal, p&&p.meetTotal)}));
+    const ints = [...r.ints.keys()], mods = [...r.modules.keys()];
+    tiles.push(tile({label:"Integrations & modules", big:`${ints.length}<small> int. · ${mods.length} mod.</small>`,
+      foot:[ints.length ? esc(ints.join(" · ")) : "No integrations logged"], delta:deltaTxt(ints.length, p&&p.ints.size)}));
+    el.innerHTML = tiles.join("");
   }
 
-  function niceStep(max){ const raw = Math.max(1, max)/4; const pow = Math.pow(10, Math.floor(Math.log10(raw))); const n = raw/pow; return (n<=1?1:n<=2?2:n<=5?5:10)*pow; }
+  // ---------- render: charts ----------
+  function niceStep(max){ const raw = Math.max(1,max)/4, pow = Math.pow(10, Math.floor(Math.log10(raw))), n = raw/pow; return Math.max(1, (n<=1?1:n<=2?2:n<=5?5:10)*pow); }
   function barChart(el, list, series, aria){
-    const W = Math.max(300, Math.round(el.clientWidth || 600));
     if(!list.length){ el.innerHTML = `<div class="empty">The chart appears after the first logged day.</div>`; return; }
-    const H=230, PL=34, PR=10, PT=14, PB=28;
+    const W = Math.max(300, Math.round(el.clientWidth || 600)), H = 220, PL = 34, PR = 8, PT = 14, PB = 28;
     const max = Math.max(1, ...list.flatMap(r=>series.map(s=>r[s.key])));
-    const step = Math.max(1, Math.ceil(niceStep(max))), top = step*Math.ceil(max/step);
+    const step = Math.ceil(niceStep(max)), top = step*Math.ceil(max/step);
     const y = v => PT + (H-PT-PB)*(1 - v/top), bw = (W-PL-PR)/list.length;
     let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${aria}">`;
     for(let v=0; v<=top; v+=step){ const yy=y(v); s+=`<line x1="${PL}" x2="${W-PR}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${PL-6}" y="${yy+4}" text-anchor="end">${v}</text>`; }
     list.forEach((r,i)=>{
-      const cx = PL + i*bw + bw/2, gap = 2, g = Math.min(18, (bw*0.7 - gap*(series.length-1))/series.length), sel = r.month===selected;
-      const x0 = cx - (g*series.length + gap*(series.length-1))/2;
-      series.forEach((sr,k)=>{
-        const v = r[sr.key], h = y(0)-y(v);
-        s+=`<rect x="${(x0 + k*(g+gap)).toFixed(1)}" y="${y(v).toFixed(1)}" width="${g.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="2" fill="${sr.color}" opacity="${sel?1:.72}"><title>${mLabel(r.month)} · ${sr.short}: ${v}</title></rect>`;
-      });
+      const cx = PL + i*bw + bw/2, gap = 2, n = series.length, g = Math.min(18, (bw*0.72 - gap*(n-1))/n), sel = r.month===selected;
+      const x0 = cx - (g*n + gap*(n-1))/2;
+      series.forEach((sr,k)=>{ const v = r[sr.key], h = Math.max(0, y(0)-y(v));
+        s+=`<rect x="${(x0+k*(g+gap)).toFixed(1)}" y="${y(v).toFixed(1)}" width="${g.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${sr.color}" opacity="${sel?1:.7}"><title>${mLabel(r.month)} · ${sr.label}: ${v}</title></rect>`; });
       s+=`<text x="${cx}" y="${H-8}" text-anchor="middle" style="${sel?"fill:var(--fg);font-weight:500":""}">${mShort(r.month)}</text>`;
     });
     el.innerHTML = s + `</svg>`;
   }
-  function renderIntegrations(list){
-    const r = list.find(x=>x.month===selected), el = $("intBreakdown");
-    $("intTitle").textContent = selected ? "Integrations · " + mLabel(selected) : "Integrations";
-    if(!r || !r.ints.size){ el.innerHTML = `<div class="empty">No integrations logged this month.</div>`; return; }
-    const rows = [...r.ints.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0]));
-    const max = rows[0][1];
-    el.innerHTML = `<div class="hbar">` + rows.map(([n,c])=>`<span class="name">${esc(n)}</span><span class="track"><i style="width:${c/max*100}%"></i></span><span class="n">${c} day${c===1?"":"s"}</span>`).join("") + `</div>`;
+  function hbars(el, rows, unit, empty){
+    if(!rows.length){ el.innerHTML = `<div class="empty">${empty}</div>`; return; }
+    const max = Math.max(...rows.map(r=>r[1]), 1);
+    el.innerHTML = `<div class="hbar">` + rows.map(([n,c,col])=>`<span class="name">${esc(n)}</span><span class="track"><i style="width:${c/max*100}%;${col?`background:${col}`:""}"></i></span><span class="n">${c}${unit?" "+unit:""}</span>`).join("") + `</div>`;
+  }
+  function renderBreakdowns(list){
+    const r = list.find(x=>x.month===selected);
+    if(!r){ ["bdTypes","bdModules","bdInts","bdMeet"].forEach(id=>$(id).innerHTML = `<div class="empty">Nothing yet.</div>`); return; }
+    const TYPECOL = {bug:"var(--bad)", feature:"var(--accent)", enhancement:"var(--warn)"};
+    hbars($("bdTypes"), TYPES.map(t=>[t.label, r.types[t.key], TYPECOL[t.key]]).filter(x=>x[1]), "", "No issues logged.");
+    hbars($("bdModules"), [...r.modules.entries()].sort((a,b)=>b[1]-a[1]), "", "No modules logged.");
+    hbars($("bdInts"), [...r.ints.entries()].sort((a,b)=>b[1]-a[1]), "", "No integrations logged.");
+    hbars($("bdMeet"), MEETINGS.map(m=>[m.label, r.meetings[m.key], "var(--s-meet)"]).filter(x=>x[1]), "", "No meetings logged.");
+  }
+
+  // ---------- render: tables ----------
+  const typeTag = t => `<span class="tag ${t}">${(TYPES.find(x=>x.key===t)||TYPES[0]).label}</span>`;
+  const resTag = r => r==="passed" ? `<span class="tag pass">Passed</span>` : r==="failed" ? `<span class="tag fail">Failed</span>` : "—";
+  function renderIssues(list){
+    const r = list.find(x=>x.month===selected);
+    $("issuesTitle").textContent = selected ? "Issues · " + mLabel(selected) : "Issues this month";
+    const rows = r ? [...r.issues.values()].sort((a,b)=>b.last.localeCompare(a.last) || a.issue.localeCompare(b.issue, undefined, {numeric:true})) : [];
+    $("issueBody").innerHTML = rows.length ? rows.map(is=>`<tr>
+      <td class="mono">#${esc(is.issue)}</td><td class="l">${typeTag(is.type)}</td><td class="l mono">${esc(is.module)||"—"}</td>
+      <td class="l">${ACTIONS.filter(a=>is.stages.has(a.key)).map(a=>`<span class="tag ${a.key}">${a.label}</span>`).join("")}</td>
+      <td>${is.rounds || "—"}</td><td class="l">${resTag(is.lastResult)}</td><td class="l">${dLong(is.last)}</td></tr>`).join("")
+      : `<tr><td colspan="7" class="empty">No issues logged for this month.</td></tr>`;
   }
   function renderMonthTable(list){
     const rev = list.slice().reverse();
     $("monthBody").innerHTML = rev.length ? rev.map(r=>`<tr class="click${r.month===selected?" sel":""}" data-m="${r.month}" tabindex="0">
-      <td>${mLabel(r.month)}</td><td>${r.days}</td><td>${r.created}</td><td>${r.developed}</td><td>${r.tested}</td><td>${r.meetings}</td><td>${r.ints.size}</td></tr>`).join("")
-      : `<tr><td colspan="7" class="empty">No months yet.</td></tr>`;
+      <td>${mLabel(r.month)}</td><td>${r.created}</td><td>${r.spec}</td><td>${r.developed}</td><td>${r.tested}</td><td>${r.passRate==null?"—":fmt(r.passRate)+"%"}</td><td>${r.bugs}</td><td>${r.meetTotal}</td></tr>`).join("")
+      : `<tr><td colspan="8" class="empty">No months yet.</td></tr>`;
   }
   function renderDayTable(){
     const days = selected ? doc.days.filter(d=>d.date.startsWith(selected)).reverse() : [];
     $("dayTitle").textContent = selected ? "Daily log · " + mLabel(selected) : "Daily log";
     $("dayHint").textContent = auth && days.length ? "Click a day to edit it" : "";
     $("dayBody").innerHTML = days.length ? days.map(d=>{
+      const acts = d.activities.map(a=>`<span class="tag ${a.action}">#${esc(a.issue)} ${ACTIONS.find(x=>x.key===a.action).label.toLowerCase()}${a.result?` · ${a.result}`:""}</span>`).join("")
+        + (d.legacy ? `<span class="tag">${d.legacy.created}c / ${d.legacy.developed}d / ${d.legacy.tested}t</span>` : "");
+      const meet = MEETINGS.reduce((s,m)=>s+d.meetings[m.key],0);
       const extra = [d.integrations.join(", "), d.notes].filter(Boolean).map(esc).join(" · ");
       return `<tr class="${auth?"click":""}${d.date===editingDay?" sel":""}" data-d="${d.date}" ${auth?'tabindex="0"':""}>
-        <td>${dLabel(d.date)}</td><td>${d.created}</td><td>${d.developed}</td><td>${d.tested}</td><td>${d.meetings}</td><td class="wrap-cell">${extra || "—"}</td></tr>`;
-    }).join("") : `<tr><td colspan="6" class="empty">No days logged for this month.</td></tr>`;
+        <td>${dLabel(d.date)}</td><td class="wrap-cell">${acts || "—"}</td><td>${d.bugs}</td><td>${meet}</td><td class="wrap-cell">${extra || "—"}</td></tr>`;
+    }).join("") : `<tr><td colspan="5" class="empty">No days logged for this month.</td></tr>`;
   }
+
   function render(){
     const list = monthsAgg(), last12 = list.slice(-12);
     renderSelect(list); renderTiles(list);
-    barChart($("chartIssues"), last12, COUNTS.slice(0,3), "Issues created, developed and tested per month");
-    barChart($("chartMeetings"), last12, [COUNTS[3]], "Meetings attended per month");
-    renderIntegrations(list); renderMonthTable(list); renderDayTable();
+    barChart($("chartPipe"), last12, ACTIONS, "Issues per stage per month");
+    barChart($("chartBugs"), last12, [{key:"bugs",label:"Bugs found",color:"var(--s-bug)"}], "Bugs found per month");
+    barChart($("chartMeet"), last12, [{key:"meetTotal",label:"Meetings",color:"var(--s-meet)"}], "Meetings attended per month");
+    renderBreakdowns(list); renderIssues(list); renderMonthTable(list); renderDayTable();
     $("updated").textContent = doc.updatedAt ? "Last updated " + new Date(doc.updatedAt).toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"}) : "No updates yet";
   }
+  $("pipeLegend").innerHTML = ACTIONS.map(a=>`<span><i class="sw" style="background:${a.color}"></i>${a.label}</span>`).join("");
 
   // ---------- owner form ----------
-  const FIELD = {created:"fCreated", developed:"fDeveloped", tested:"fTested", meetings:"fMeetings"};
+  $("meetInputs").innerHTML = MEETINGS.map(m=>`<label>${m.label}<input id="fMeet_${m.key}" type="number" min="0" step="1" inputmode="numeric"></label>`).join("");
+  $("targetInputs").innerHTML = TARGETS.map(t=>`<label class="hint">${t.label}<input id="tg_${t.key}" type="number" min="0"${t.key==="passRate"?' max="100"':""}></label>`).join("");
+
+  let rowSeq = 0;
+  function actRow(a){
+    a = a || {issue:"", type:"bug", action:"developed", result:null, module:""};
+    const id = "ar" + (++rowSeq);
+    const opts = (arr, cur) => arr.map(o=>`<option value="${o.key}"${o.key===cur?" selected":""}>${o.label}</option>`).join("");
+    const div = document.createElement("div");
+    div.className = "act-row"; div.dataset.row = id;
+    div.innerHTML = `
+      <input class="a-issue" type="text" inputmode="numeric" placeholder="#2765" aria-label="Issue number" value="${esc(a.issue ? "#"+a.issue : "")}">
+      <select class="a-type" aria-label="Issue type">${opts(TYPES, a.type)}</select>
+      <select class="a-action" aria-label="What you did">${opts(ACTIONS, a.action)}</select>
+      <select class="a-result" aria-label="Test result"${a.action==="tested"?"":" disabled"}><option value="">${a.action==="tested"?"Result…":"—"}</option><option value="passed"${a.result==="passed"?" selected":""}>Passed</option><option value="failed"${a.result==="failed"?" selected":""}>Failed</option></select>
+      <input class="a-module" type="text" list="moduleList" placeholder="dawa_salla" aria-label="Module" value="${esc(a.module)}">
+      <button type="button" class="icon-btn a-del" aria-label="Remove this issue row" title="Remove">×</button>`;
+    return div;
+  }
+  function addActRow(a){ const row = actRow(a); $("actRows").appendChild(row); return row; }
+  $("addActBtn").addEventListener("click", ()=>{ addActRow().querySelector(".a-issue").focus(); });
+  $("actRows").addEventListener("click", e=>{ if(e.target.closest(".a-del")) e.target.closest(".act-row").remove(); });
+  $("actRows").addEventListener("change", e=>{
+    const row = e.target.closest(".act-row"); if(!row) return;
+    if(e.target.classList.contains("a-action")){
+      const res = row.querySelector(".a-result"), on = e.target.value==="tested";
+      res.disabled = !on; res.options[0].textContent = on ? "Result…" : "—"; if(!on) res.value = "";
+    }
+    if(e.target.classList.contains("a-issue")){
+      // Fill type and module from the last time this issue was logged
+      const known = issueInfo().get(cleanIssue(e.target.value));
+      if(known){ row.querySelector(".a-type").value = known.type; if(!row.querySelector(".a-module").value) row.querySelector(".a-module").value = known.module||""; }
+    }
+  });
+
   function renderChips(){
-    const all = [...new Set([...doc.integrations, ...formInts])].sort((a,b)=>a.localeCompare(b));
+    const all = sortAlpha([...new Set([...doc.integrations, ...formInts])]);
     $("intChips").innerHTML = all.length ? all.map(n=>`<button type="button" class="chip" aria-pressed="${formInts.has(n)}" data-int="${esc(n)}">${esc(n)}</button>`).join("")
       : `<span class="hint">No integrations yet. Add the first one below.</span>`;
   }
   function fillForm(date){
     const d = doc.days.find(x=>x.date===date);
     editingDay = d ? date : null;
-    $("formTitle").textContent = d ? "Edit " + dLabel(date) + " " + MONTHS[+date.slice(5,7)-1] : "Log a day";
+    $("formTitle").textContent = d ? "Edit " + dLong(date) : "Log a day";
     $("fDate").value = date;
-    Object.entries(FIELD).forEach(([k,id])=>$(id).value = d ? d[k] : "");
+    $("actRows").innerHTML = "";
+    (d && d.activities.length ? d.activities : [null]).forEach(a=>addActRow(a));
+    $("fBugs").value = d && d.bugs ? d.bugs : "";
+    MEETINGS.forEach(m=>$("fMeet_"+m.key).value = d && d.meetings[m.key] ? d.meetings[m.key] : "");
     formInts = new Set(d ? d.integrations : []);
     $("fNotes").value = d ? d.notes : "";
     $("fNewInt").value = "";
+    $("moduleList").innerHTML = doc.modules.map(m=>`<option value="${esc(m)}"></option>`).join("");
     $("delBtn").hidden = !d; disarm(); $("fErr").textContent = ""; $("fOk").textContent = "";
     renderChips(); renderDayTable();
   }
@@ -445,8 +605,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     const name = $("fNewInt").value.trim().replace(/\s+/g," ");
     if(!name) return;
     const existing = [...doc.integrations, ...formInts].find(n=>n.toLowerCase()===name.toLowerCase());
-    formInts.add(existing || name);
-    $("fNewInt").value = ""; renderChips();
+    formInts.add(existing || name); $("fNewInt").value = ""; renderChips();
   }
   $("intChips").addEventListener("click", e=>{
     const b = e.target.closest("[data-int]"); if(!b) return;
@@ -462,7 +621,7 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     $("ownerToggle").textContent = auth ? "Owner panel" : "Owner sign-in";
     if(auth){
       $("whoami").textContent = `Saving to ${auth.repo} (${auth.branch}). Visitors see changes about a minute after saving, once GitHub Pages redeploys.`;
-      $("tgCreated").value = doc.targets.created; $("tgDeveloped").value = doc.targets.developed; $("tgTested").value = doc.targets.tested; $("tgMeetings").value = doc.targets.meetings;
+      TARGETS.forEach(t=>$("tg_"+t.key).value = doc.targets[t.key]);
     } else {
       $("tRepo").value = $("tRepo").value || store.get("kpi.repo") || guessRepo();
       $("tBranch").value = store.get("kpi.branch") || $("tBranch").value || "main";
@@ -486,23 +645,33 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
   $("todayBtn").addEventListener("click", ()=>fillForm(todayStr()));
   $("fDate").addEventListener("change", e=>{ if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) fillForm(e.target.value); });
 
+  function readCount(el){ const raw = el.value.trim(), v = raw==="" ? 0 : Number(raw); return Number.isInteger(v) && v>=0 ? v : NaN; }
   $("form").addEventListener("submit", async e=>{
     e.preventDefault();
     const err = $("fErr"); $("fOk").textContent = "";
     if($("fNewInt").value.trim()) addIntegration();
-    const r = { date:$("fDate").value, integrations:[...formInts].sort((a,b)=>a.localeCompare(b)), notes:$("fNotes").value.trim() };
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(r.date)) return err.textContent = "Pick a date.";
-    for(const [k,id] of Object.entries(FIELD)){
-      const raw = $(id).value.trim(), v = raw==="" ? 0 : Number(raw);
-      if(!Number.isInteger(v) || v<0) return err.textContent = "Counts must be whole numbers of 0 or more.";
-      r[k] = v;
+    const date = $("fDate").value;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return err.textContent = "Pick a date at the top of the form.";
+    const activities = [];
+    for(const row of $("actRows").querySelectorAll(".act-row")){
+      const issue = cleanIssue(row.querySelector(".a-issue").value), module = row.querySelector(".a-module").value.trim();
+      const action = row.querySelector(".a-action").value, result = row.querySelector(".a-result").value || null;
+      if(!issue){ if(module) return err.textContent = "Each issue row needs an issue number."; continue; }
+      if(action==="tested" && !result) return err.textContent = `Pick Passed or Failed for the test on #${issue}.`;
+      activities.push({issue, type:row.querySelector(".a-type").value, action, result: action==="tested" ? result : null, module});
     }
-    if(!r.created && !r.developed && !r.tested && !r.meetings && !r.integrations.length && !r.notes) return err.textContent = "Enter at least one count, integration or note.";
+    const bugs = readCount($("fBugs")), meetings = {};
+    if(isNaN(bugs)) return err.textContent = "Bugs found must be a whole number of 0 or more.";
+    for(const m of MEETINGS){ const v = readCount($("fMeet_"+m.key)); if(isNaN(v)) return err.textContent = "Meeting counts must be whole numbers of 0 or more."; meetings[m.key] = v; }
+    const r = { date, activities, bugs, meetings, integrations: sortAlpha([...formInts]), notes: $("fNotes").value.trim() };
+    const old = doc.days.find(x=>x.date===date);
+    if(old && old.legacy) r.legacy = old.legacy;
+    if(!activities.length && !bugs && !Object.values(meetings).some(Boolean) && !r.integrations.length && !r.notes && !r.legacy) return err.textContent = "Add at least one issue, bug, meeting, integration or note.";
     err.textContent = "";
     const btn = $("saveBtn"); btn.disabled = true; btn.textContent = "Saving…";
     try{
-      await commit(d=>{ d.days = d.days.filter(x=>x.date!==r.date); d.days.push(r); }, `KPI log: ${r.date}`);
-      selected = r.date.slice(0,7); render(); fillForm(r.date); $("fOk").textContent = "Saved to GitHub";
+      await commit(d=>{ d.days = d.days.filter(x=>x.date!==date); d.days.push(r); }, `KPI log: ${date}`);
+      selected = date.slice(0,7); render(); fillForm(date); $("fOk").textContent = "Saved to GitHub";
     }catch(x){ err.textContent = ghError(x); }
     btn.disabled = false; btn.textContent = "Save day";
   });
@@ -520,20 +689,28 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
   });
 
   $("saveTargets").addEventListener("click", async ()=>{
-    const t = { created:+$("tgCreated").value||0, developed:+$("tgDeveloped").value||0, tested:+$("tgTested").value||0, meetings:+$("tgMeetings").value||0 };
-    if(Object.values(t).some(v=>!Number.isInteger(v) || v<0)) return $("tgStatus").textContent = "Targets must be whole numbers of 0 or more.";
+    const t = {}; TARGETS.forEach(x=>t[x.key] = +$("tg_"+x.key).value || 0);
+    if(Object.values(t).some(v=>!(v>=0)) || t.passRate>100) return $("tgStatus").textContent = "Targets must be 0 or more, and pass rate at most 100.";
     $("tgStatus").textContent = "Saving…";
     try{ await commit(d=>{ d.targets = t; }, "KPI targets updated"); render(); $("tgStatus").textContent = "Targets saved"; }
     catch(x){ $("tgStatus").textContent = ghError(x); }
   });
 
-  $("exportBtn").addEventListener("click", ()=>{
-    const q = s => '"' + String(s).replace(/"/g,'""') + '"';
-    const rows = [["date","issues_created","issues_developed","issues_tested","meetings_attended","integrations","notes"]]
-      .concat(doc.days.map(d=>[d.date,d.created,d.developed,d.tested,d.meetings,q(d.integrations.join("; ")),q(d.notes)]));
-    const blob = new Blob(["﻿" + rows.map(r=>r.join(",")).join("\n")], {type:"text/csv"});
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "kpi-days.csv"; document.body.appendChild(a); a.click(); a.remove();
+  function downloadCsv(name, rows){
+    const q = s => { s = String(s ?? ""); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
+    const blob = new Blob(["﻿" + rows.map(r=>r.map(q).join(",")).join("\n")], {type:"text/csv"});
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  }
+  $("exportIssues").addEventListener("click", ()=>{
+    const rows = [["date","issue","type","action","test_result","module"]];
+    doc.days.forEach(d=>d.activities.forEach(a=>rows.push([d.date, "#"+a.issue, a.type, a.action, a.result||"", a.module])));
+    downloadCsv("kpi-issues.csv", rows);
+  });
+  $("exportDays").addEventListener("click", ()=>{
+    const rows = [["date","issues_logged","bugs_found",...MEETINGS.map(m=>"meetings_"+m.key),"integrations","notes"]];
+    doc.days.forEach(d=>rows.push([d.date, d.activities.length, d.bugs, ...MEETINGS.map(m=>d.meetings[m.key]), d.integrations.join("; "), d.notes]));
+    downloadCsv("kpi-days.csv", rows);
   });
 
   $("monthSel").addEventListener("change", e=>{ selected = e.target.value; render(); });
@@ -546,7 +723,6 @@ footer button{background:none;border:none;color:var(--accent);cursor:pointer;pad
     $(id).addEventListener("click", pickRow);
     $(id).addEventListener("keydown", e=>{ if(e.key==="Enter") pickRow(e); });
   });
-
   let rt; window.addEventListener("resize", ()=>{ clearTimeout(rt); rt = setTimeout(render, 150); });
 
   // ---------- boot ----------

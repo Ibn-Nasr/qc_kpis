@@ -1,14 +1,21 @@
 # Hassan's Monthly KPIs
 
-A static KPI dashboard hosted on GitHub Pages. You log each day, and the page adds the days up into monthly KPIs:
+A static KPI dashboard hosted on GitHub Pages. You log each day, and the page adds the days up into monthly KPIs.
 
-- **Issues created**
-- **Issues developed**
-- **Issues tested**
-- **Meetings attended**
-- **Integrations worked on**: which integrations you touched, and on how many days each month
+**Per issue** (one row per issue and action, with issue number, type, module and test result):
 
-You can set an optional monthly target for each count in the owner panel.
+- Issues created, specs written, issues developed, issues tested (each counts distinct issues per month)
+- Test pass rate = passed test rounds ÷ all test rounds
+- Review rounds = how many times an issue was tested
+- Issue types (bug / feature / enhancement) and modules worked in
+
+**Per day:**
+
+- Bugs found (anywhere, not only in issues you tested)
+- Meetings attended, split into stand-up, internal, client and other
+- Integrations worked on
+
+You can set optional monthly targets for created, specs, developed, tested, meetings and pass rate in the owner panel.
 
 All data lives in `data.json` in this repository. Every save from the page is a commit, so the git history is also a backup of your data.
 
@@ -40,10 +47,10 @@ The token is saved only in that browser. Sign in once on each device you use (la
 
 ## Daily routine
 
-Open the site, click **Today**, fill in the counts, tap the integrations you worked on (or add a new one), and click **Save day**. To fix a day, click it in the daily log. Visitors see the change about a minute later, once Pages redeploys.
+Open the site and click **Today**. Add one row per issue: its number, type, what you did (created, spec written, developed or tested), the test result if you tested it, and the module. Then fill in bugs found and meetings, tap the integrations you worked on, and click **Save day**. When you type an issue number you've logged before, its type and module fill in automatically. To fix a day, click it in the daily log. Visitors see the change about a minute later, once Pages redeploys.
 
 ## Notes
 
 - The data is public. Anyone with the link can read `data.json`.
 - If the token expires, the page signs you out with a message. Create a new token and sign in again.
-- **Export CSV** in the owner panel downloads all your days as a spreadsheet file.
+- **Export issues CSV** and **Export days CSV** in the owner panel download your data as spreadsheet files.

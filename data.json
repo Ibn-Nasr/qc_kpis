@@ -1,6 +1,7 @@
 {
-  "targets": { "created": 0, "developed": 0, "tested": 0, "meetings": 0 },
+  "targets": { "created": 0, "spec": 0, "developed": 0, "tested": 0, "meetings": 0, "passRate": 0 },
   "integrations": [],
+  "modules": [],
   "days": [],
   "updatedAt": null
 }
