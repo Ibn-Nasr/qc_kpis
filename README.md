@@ -7,15 +7,19 @@ A static KPI dashboard hosted on GitHub Pages. You log each day, and the page ad
 - Issues created, developed, tested and re-tested (each counts distinct issues per month)
 - Test pass rate = passed test rounds ÷ all test rounds (tested and re-tested)
 - Review rounds = how many times an issue was tested or re-tested
+- Test cases run per issue (entered on each Tested / Re-Tested row)
 - Issue types (bug / feature / enhancement) and modules worked in
 
 **Per day:**
 
 - Bugs found, by severity (Critical, High, Medium, Low) and where they were found (MR, Dev, Main)
+- Test cases executed: manual (Regression, MR, Dev, Main) and automation, with failed and blocked/skipped counts
+- Test cases written: manual cases and automation scripts
+- Bugs per 100 cases = bugs found ÷ test cases executed × 100
 - Meetings attended, split into support, internal, integration and client
 - Integrations worked on
 
-You can set optional monthly targets for created, developed, tested, re-tested, meetings and pass rate in the owner panel.
+You can set optional monthly targets for created, developed, tested, re-tested, meetings, pass rate and test cases in the owner panel.
 
 All data lives in `data.json` in this repository. Every save from the page is a commit, so the git history is also a backup of your data.
 
@@ -47,7 +51,7 @@ The token is saved only in that browser. Sign in once on each device you use (la
 
 ## Daily routine
 
-Open the site and click **Today**. Add one row per issue: its number, type, what you did (created, developed, tested or re-tested), the stage (MR, Dev or Main) and result if you tested or re-tested it, and the module. Then fill in the bugs grid (severity × MR/Dev/Main) and meetings, tap the integrations you worked on, and click **Save day**. When you type an issue number you've logged before, its type and module fill in automatically. To fix a day, click it in the daily log. Visitors see the change about a minute later, once Pages redeploys.
+Open the site and click **Today**. Add one row per issue: its number, type, what you did (created, developed, tested or re-tested), the stage (MR, Dev or Main) and result if you tested or re-tested it, and the module. Then fill in the bugs grid (severity × MR/Dev/Main), the test cases you executed, and meetings, tap the integrations you worked on, and click **Save day**. When you type an issue number you've logged before, its type and module fill in automatically. To fix a day, click it in the daily log. Visitors see the change about a minute later, once Pages redeploys.
 
 ## Notes
 
