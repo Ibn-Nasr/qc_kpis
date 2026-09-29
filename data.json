@@ -1,7 +1,86 @@
 {
-  "targets": { "created": 0, "spec": 0, "developed": 0, "tested": 0, "meetings": 0, "passRate": 0 },
-  "integrations": [],
-  "modules": [],
-  "days": [],
-  "updatedAt": null
+  "targets": {
+    "created": 0,
+    "developed": 0,
+    "tested": 0,
+    "retested": 0,
+    "meetings": 0,
+    "passRate": 0
+  },
+  "integrations": [
+    "Wasfaty"
+  ],
+  "modules": [
+    "Hungerstation",
+    "Jordan Insurance",
+    "Purchase",
+    "Settings",
+    "Wasfaty",
+    "Zatca"
+  ],
+  "days": [
+    {
+      "date": "2026-09-29",
+      "activities": [
+        {
+          "issue": "2781",
+          "type": "bug",
+          "action": "created",
+          "result": null,
+          "module": "Settings"
+        },
+        {
+          "issue": "2782",
+          "type": "bug",
+          "action": "created",
+          "result": null,
+          "module": "Hungerstation"
+        },
+        {
+          "issue": "2783",
+          "type": "bug",
+          "action": "created",
+          "result": null,
+          "module": "Jordan Insurance"
+        },
+        {
+          "issue": "2774",
+          "type": "enhancement",
+          "action": "retested",
+          "result": "passed",
+          "module": "Purchase"
+        },
+        {
+          "issue": "2775",
+          "type": "enhancement",
+          "action": "retested",
+          "result": "passed",
+          "module": "Zatca"
+        },
+        {
+          "issue": "2779",
+          "type": "enhancement",
+          "action": "retested",
+          "result": "passed",
+          "module": "Wasfaty"
+        }
+      ],
+      "bugs": {
+        "mr": 1,
+        "dev": 1,
+        "main": 0
+      },
+      "meetings": {
+        "support": 1,
+        "internal": 1,
+        "integration": 1,
+        "client": 0
+      },
+      "integrations": [
+        "Wasfaty"
+      ],
+      "notes": ""
+    }
+  ],
+  "updatedAt": "2026-09-29T14:34:41.106Z"
 }
