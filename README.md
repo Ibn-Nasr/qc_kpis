@@ -2,7 +2,7 @@
 
 A static KPI dashboard hosted on GitHub Pages. You log each day, and the page adds the days up into monthly KPIs.
 
-**Per issue** (one row per issue and action, with issue number, type, module and test result):
+**Per issue** (one row per issue and action, with issue number, type, module, and for tests the stage — MR, Dev or Main — and result):
 
 - Issues created, developed, tested and re-tested (each counts distinct issues per month)
 - Test pass rate = passed test rounds ÷ all test rounds (tested and re-tested)
@@ -11,7 +11,7 @@ A static KPI dashboard hosted on GitHub Pages. You log each day, and the page ad
 
 **Per day:**
 
-- Bugs found, split by where they were found: MR, Dev or Main
+- Bugs found, by severity (Critical, High, Medium, Low) and where they were found (MR, Dev, Main)
 - Meetings attended, split into support, internal, integration and client
 - Integrations worked on
 
@@ -47,10 +47,11 @@ The token is saved only in that browser. Sign in once on each device you use (la
 
 ## Daily routine
 
-Open the site and click **Today**. Add one row per issue: its number, type, what you did (created, developed, tested or re-tested), the test result if you tested or re-tested it, and the module. Then fill in bugs found (MR, Dev, Main) and meetings, tap the integrations you worked on, and click **Save day**. When you type an issue number you've logged before, its type and module fill in automatically. To fix a day, click it in the daily log. Visitors see the change about a minute later, once Pages redeploys.
+Open the site and click **Today**. Add one row per issue: its number, type, what you did (created, developed, tested or re-tested), the stage (MR, Dev or Main) and result if you tested or re-tested it, and the module. Then fill in the bugs grid (severity × MR/Dev/Main) and meetings, tap the integrations you worked on, and click **Save day**. When you type an issue number you've logged before, its type and module fill in automatically. To fix a day, click it in the daily log. Visitors see the change about a minute later, once Pages redeploys.
 
 ## Notes
 
 - The data is public. Anyone with the link can read `data.json`.
 - If the token expires, the page signs you out with a message. Create a new token and sign in again.
 - **Export issues CSV** and **Export days CSV** in the owner panel download your data as spreadsheet files.
+- Keep your existing `data.json` when updating `index.html`. Older entries still load.
